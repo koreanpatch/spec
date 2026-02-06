@@ -1,0 +1,32 @@
+lexicon: 1
+id: tools.spec.profile.elo
+description: Public ELO score profile for a user.
+defs:
+  main:
+    type: record
+    key: literal:self
+    record:
+      type: object
+      required:
+        - overallScore
+        - eventCount
+        - updatedAt
+      properties:
+        overallScore:
+          type: integer
+          minimum: 0
+        readingScore:
+          type: integer
+          minimum: 0
+        vocabularyScore:
+          type: integer
+          minimum: 0
+        listeningScore:
+          type: integer
+          minimum: 0
+        eventCount:
+          type: integer
+          minimum: 0
+        updatedAt:
+          type: string
+          format: datetime

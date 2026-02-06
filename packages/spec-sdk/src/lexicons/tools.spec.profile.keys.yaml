@@ -1,0 +1,18 @@
+lexicon: 1
+id: tools.spec.profile.keys
+description: User encryption public key for selective disclosure.
+defs:
+  main:
+    type: record
+    key: literal:self
+    record:
+      type: object
+      required:
+        - masterPublicKey
+        - createdAt
+      properties:
+        masterPublicKey:
+          type: string
+        createdAt:
+          type: string
+          format: datetime

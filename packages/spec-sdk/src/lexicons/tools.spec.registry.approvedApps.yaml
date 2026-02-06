@@ -1,0 +1,36 @@
+lexicon: 1
+id: tools.spec.registry.approvedApps
+description: Registry entry for an approved SPEC app.
+defs:
+  main:
+    type: record
+    key: tid
+    record:
+      type: object
+      required:
+        - did
+        - name
+        - publicKey
+        - permissions
+        - approvedAt
+      properties:
+        did:
+          type: string
+          format: did
+        name:
+          type: string
+          maxLength: 256
+        publicKey:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+        approvedAt:
+          type: string
+          format: datetime
+        revokedAt:
+          type: string
+          format: datetime
+        revocationReason:
+          type: string

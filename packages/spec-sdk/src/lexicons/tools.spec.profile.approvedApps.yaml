@@ -1,0 +1,34 @@
+lexicon: 1
+id: tools.spec.profile.approvedApps
+description: User's list of apps authorized to decrypt their data.
+defs:
+  main:
+    type: record
+    key: literal:self
+    record:
+      type: object
+      required:
+        - apps
+      properties:
+        apps:
+          type: array
+          items:
+            type: ref
+            ref: "#approvedApp"
+
+  approvedApp:
+    type: object
+    required:
+      - did
+      - approvedAt
+    properties:
+      did:
+        type: string
+        format: did
+      approvedAt:
+        type: string
+        format: datetime
+      permissions:
+        type: array
+        items:
+          type: string
