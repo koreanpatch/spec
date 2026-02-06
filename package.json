@@ -1,5 +1,6 @@
 {
   "private": true,
+  "packageManager": "pnpm@10.28.1",
   "type": "module",
   "scripts": {
     "generate": "pnpm -r --filter spec-sdk generate",
