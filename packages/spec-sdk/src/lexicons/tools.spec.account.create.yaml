@@ -1,0 +1,19 @@
+lexicon: 1
+id: tools.spec.account.create
+description: Create a new SPEC account.
+defs:
+  main:
+    type: procedure
+    input:
+      encoding: application/json
+      schema:
+        type: ref
+        ref: tools.spec.account.defs#createAccountInput
+    output:
+      encoding: application/json
+      schema:
+        type: ref
+        ref: tools.spec.account.defs#createAccountOutput
+    errors:
+      - name: HandleAlreadyExists
+      - name: InvalidHandle

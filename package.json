@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "pnpm -r --filter spec-sdk generate",
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter spec-server dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "tsx": "^4.19.2",
+    "@types/node": "^22.12.0"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "spec-client",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./dpop": {
+      "types": "./dist/dpop.d.ts",
+      "import": "./dist/dpop.js"
+    },
+    "./auth-flow": {
+      "types": "./dist/auth-flow.d.ts",
+      "import": "./dist/auth-flow.js"
+    },
+    "./callback": {
+      "types": "./dist/callback.d.ts",
+      "import": "./dist/callback.js"
+    },
+    "./token-manager": {
+      "types": "./dist/token-manager.d.ts",
+      "import": "./dist/token-manager.js"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "spec-sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "@types/node": "^22.12.0"
+  }
+}

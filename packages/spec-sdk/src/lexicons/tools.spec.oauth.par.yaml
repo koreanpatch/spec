@@ -1,0 +1,20 @@
+lexicon: 1
+id: tools.spec.oauth.par
+description: Pushed Authorization Request endpoint. Initiates OAuth authorization flow with DPoP binding.
+defs:
+  main:
+    type: procedure
+    input:
+      encoding: application/x-www-form-urlencoded
+      schema:
+        type: ref
+        ref: tools.spec.oauth.defs#parRequest
+    output:
+      encoding: application/json
+      schema:
+        type: ref
+        ref: tools.spec.oauth.defs#parResponse
+    errors:
+      - name: InvalidRequest
+      - name: InvalidClient
+      - name: InvalidDpopProof

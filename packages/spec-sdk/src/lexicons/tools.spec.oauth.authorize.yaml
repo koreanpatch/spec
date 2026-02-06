@@ -1,0 +1,20 @@
+lexicon: 1
+id: tools.spec.oauth.authorize
+description: Authorization endpoint. Redirects user to login and consent interface.
+defs:
+  main:
+    type: query
+    parameters:
+      type: params
+      required:
+        - request_uri
+        - client_id
+      properties:
+        request_uri:
+          type: string
+        client_id:
+          type: string
+          format: uri
+    errors:
+      - name: InvalidRequest
+      - name: ExpiredRequestUri
