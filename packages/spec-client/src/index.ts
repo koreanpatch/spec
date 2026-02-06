@@ -11,3 +11,12 @@ export { fetchTokens, refreshTokens, createTokenManager } from "./token-manager.
 export type { TokenResponse, FetchTokensParams, RefreshTokensParams, TokenManagerConfig, TokenManager } from "./token-manager.js";
 
 export { base64urlEncode, base64urlDecode, generateRandomString, sha256 } from "./crypto.js";
+
+export { writeSignedEvent, listEvents } from "./events.js";
+export type { WriteEventOptions, ListEventsOptions } from "./events.js";
+
+export { generateMasterKey, encryptField, decryptField, checkAppReputation, exportMasterKeyMaterial, importMasterKeyMaterial } from "./encrypt.js";
+export type { DecryptFieldOptions, AppReputation } from "./encrypt.js";
+
+export { fetchEloScore, fetchEloHistory } from "./elo.js";
+export type { EloScore, EloHistoryEntry } from "./elo.js";
