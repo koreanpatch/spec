@@ -1,0 +1,37 @@
+lexicon: 1
+id: tools.spec.event.word.saved
+description: User saved or looked up a word.
+defs:
+  main:
+    type: record
+    key: tid
+    record:
+      type: object
+      required:
+        - wordId
+        - languageCode
+        - savedAt
+        - appDid
+        - signature
+      properties:
+        wordId:
+          type: string
+        word:
+          type: string
+        context:
+          type: string
+        languageCode:
+          type: string
+          maxLength: 10
+        difficulty:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        savedAt:
+          type: string
+          format: datetime
+        appDid:
+          type: string
+          format: did
+        signature:
+          type: string

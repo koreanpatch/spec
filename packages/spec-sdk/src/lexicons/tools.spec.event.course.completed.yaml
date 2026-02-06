@@ -1,0 +1,37 @@
+lexicon: 1
+id: tools.spec.event.course.completed
+description: User completed a course or lesson.
+defs:
+  main:
+    type: record
+    key: tid
+    record:
+      type: object
+      required:
+        - courseId
+        - completedAt
+        - appDid
+        - signature
+      properties:
+        courseId:
+          type: string
+        courseName:
+          type: string
+        lessonCount:
+          type: integer
+          minimum: 1
+        languageCode:
+          type: string
+          maxLength: 10
+        difficulty:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        completedAt:
+          type: string
+          format: datetime
+        appDid:
+          type: string
+          format: did
+        signature:
+          type: string
