@@ -22,6 +22,18 @@
     "./token-manager": {
       "types": "./dist/token-manager.d.ts",
       "import": "./dist/token-manager.js"
+    },
+    "./events": {
+      "types": "./dist/events.d.ts",
+      "import": "./dist/events.js"
+    },
+    "./encrypt": {
+      "types": "./dist/encrypt.d.ts",
+      "import": "./dist/encrypt.js"
+    },
+    "./elo": {
+      "types": "./dist/elo.d.ts",
+      "import": "./dist/elo.js"
     }
   },
   "main": "dist/index.js",
