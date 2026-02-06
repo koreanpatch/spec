@@ -1,0 +1,8 @@
+node_modules/
+dist/
+*.tsbuildinfo
+packages/spec-sdk/src/generated/
+tmp-lexicons/
+.env
+.env.*
+!.env.example

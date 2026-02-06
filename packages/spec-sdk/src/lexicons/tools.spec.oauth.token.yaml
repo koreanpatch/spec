@@ -1,0 +1,21 @@
+lexicon: 1
+id: tools.spec.oauth.token
+description: Token endpoint. Exchanges authorization code or refresh token for access/refresh tokens with DPoP binding.
+defs:
+  main:
+    type: procedure
+    input:
+      encoding: application/x-www-form-urlencoded
+      schema:
+        type: ref
+        ref: tools.spec.oauth.defs#tokenRequest
+    output:
+      encoding: application/json
+      schema:
+        type: ref
+        ref: tools.spec.oauth.defs#tokenResponse
+    errors:
+      - name: InvalidGrant
+      - name: InvalidClient
+      - name: InvalidDpopProof
+      - name: ExpiredToken

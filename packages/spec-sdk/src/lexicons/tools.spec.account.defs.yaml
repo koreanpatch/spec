@@ -1,0 +1,48 @@
+lexicon: 1
+id: tools.spec.account.defs
+description: Shared type definitions for SPEC account management.
+defs:
+  accountInfo:
+    type: object
+    required:
+      - did
+      - handle
+      - created_at
+    properties:
+      did:
+        type: string
+        format: did
+      handle:
+        type: string
+        format: handle
+      created_at:
+        type: string
+        format: datetime
+      display_name:
+        type: string
+        maxLength: 256
+
+  createAccountInput:
+    type: object
+    required:
+      - handle
+    properties:
+      handle:
+        type: string
+        format: handle
+      display_name:
+        type: string
+        maxLength: 256
+
+  createAccountOutput:
+    type: object
+    required:
+      - did
+      - handle
+    properties:
+      did:
+        type: string
+        format: did
+      handle:
+        type: string
+        format: handle
