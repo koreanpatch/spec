@@ -30,3 +30,22 @@ execSync(`${lexCli} gen-api --yes ${OUT_DIR} ${TMP_DIR}/*.json`, {
 });
 
 rmSync(TMP_DIR, { recursive: true, force: true });
+
+const generatedIndex = join(OUT_DIR, "index.ts");
+const content = readFileSync(generatedIndex, "utf-8");
+
+const atprotoImport = `import type {
+  ComAtprotoRepoListRecords,
+  ComAtprotoRepoGetRecord,
+  ComAtprotoRepoCreateRecord,
+  ComAtprotoRepoPutRecord,
+  ComAtprotoRepoDeleteRecord,
+} from '@atproto/api'
+`;
+
+const patched = content.replace(
+  "import { schemas }",
+  `${atprotoImport}\nimport { schemas }`,
+);
+
+writeFileSync(generatedIndex, patched);

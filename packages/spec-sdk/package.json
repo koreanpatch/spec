@@ -6,6 +6,22 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./crypto": {
+      "types": "./dist/crypto/signing.d.ts",
+      "import": "./dist/crypto/signing.js"
+    },
+    "./crypto/signing": {
+      "types": "./dist/crypto/signing.d.ts",
+      "import": "./dist/crypto/signing.js"
+    },
+    "./crypto/encryption": {
+      "types": "./dist/crypto/encryption.d.ts",
+      "import": "./dist/crypto/encryption.js"
+    },
+    "./crypto/keys": {
+      "types": "./dist/crypto/keys.d.ts",
+      "import": "./dist/crypto/keys.js"
     }
   },
   "main": "dist/index.js",
@@ -17,6 +33,7 @@
     "dev": "tsc --watch"
   },
   "dependencies": {
+    "@atproto/api": "^0.15.0",
     "@atproto/xrpc": "^0.7.0",
     "@atproto/lexicon": "^0.6.0",
     "multiformats": "^13.3.0"
