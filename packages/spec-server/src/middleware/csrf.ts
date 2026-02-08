@@ -9,6 +9,11 @@ export function csrfMiddleware(): MiddlewareHandler {
       return;
     }
 
+    if (c.req.header("DPoP")) {
+      await next();
+      return;
+    }
+
     const origin = c.req.header("Origin");
     const referer = c.req.header("Referer");
     const issuer = process.env["ISSUER_URL"] ?? "http://localhost:3000";

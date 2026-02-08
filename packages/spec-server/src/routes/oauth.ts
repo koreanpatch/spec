@@ -1,8 +1,9 @@
 import { Hono, type Context } from "hono";
+import { getCookie } from "hono/cookie";
 import type { Env } from "../app.js";
 import { dpopMiddleware, generateNonce } from "../middleware/dpop.js";
 import { query } from "../db/pool.js";
-import { createSession, findSessionByRequestUri, findSessionByCode, markSessionAuthorized } from "../db/queries/sessions.js";
+import { createSession, findSessionByRequestUri, findSessionByCode, setAuthorizationCode } from "../db/queries/sessions.js";
 import { createRefreshToken, findValidRefreshToken, revokeRefreshToken } from "../db/queries/tokens.js";
 import { findOrCreateUser } from "../db/queries/users.js";
 import { verifyCodeChallenge } from "../crypto/pkce.js";
@@ -60,8 +61,8 @@ export function oauthRoutes() {
     const requestUri = c.req.query("request_uri");
     const clientId = c.req.query("client_id");
 
-    if (!requestUri || !clientId) {
-      return c.json({ error: "invalid_request" }, 400);
+    if (!requestUri) {
+      return c.json({ error: "invalid_request", error_description: "Missing request_uri" }, 400);
     }
 
     const session = await findSessionByRequestUri(requestUri);
@@ -70,7 +71,7 @@ export function oauthRoutes() {
       return c.json({ error: "invalid_request", error_description: "Unknown or expired request_uri" }, 400);
     }
 
-    if (session.client_id !== clientId) {
+    if (clientId && session.client_id !== clientId) {
       return c.json({ error: "invalid_client" }, 400);
     }
 
@@ -78,12 +79,24 @@ export function oauthRoutes() {
       return c.json({ error: "expired_request_uri" }, 400);
     }
 
+    const userId = getCookie(c, "spec_user");
+
+    if (!userId) {
+      return c.redirect(`/login?request_uri=${encodeURIComponent(requestUri)}`);
+    }
+
+    if (!session.authorized || session.user_id !== userId) {
+      return c.redirect(`/consent?request_uri=${encodeURIComponent(requestUri)}`);
+    }
+
     const authorizationCode = crypto.randomUUID();
-    await markSessionAuthorized(session.id, authorizationCode);
+    await setAuthorizationCode(session.id, authorizationCode);
 
     const redirectUrl = new URL(session.redirect_uri);
     redirectUrl.searchParams.set("code", authorizationCode);
-    redirectUrl.searchParams.set("state", session.state);
+    if (session.state) {
+      redirectUrl.searchParams.set("state", session.state);
+    }
     redirectUrl.searchParams.set("iss", process.env["ISSUER_URL"] ?? "http://localhost:3000");
 
     return c.redirect(redirectUrl.toString());
@@ -166,7 +179,8 @@ async function handleAuthorizationCode(
     return c.json({ error: "invalid_grant", error_description: "PKCE verification failed" }, 400);
   }
 
-  const user = await findOrCreateUser(session.login_hint ?? session.did ?? `did:plc:${crypto.randomUUID()}`);
+  const userDid = session.login_hint ?? session.did ?? `did:plc:${crypto.randomUUID()}`;
+  const user = await findOrCreateUser(userDid);
 
   const accessToken = await signAccessToken({
     sub: user.did,

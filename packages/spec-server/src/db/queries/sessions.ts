@@ -14,6 +14,7 @@ interface SessionRow {
   did: string | null;
   request_uri: string;
   code: string | null;
+  authorized: boolean;
   expires_at: Date;
   created_at: Date;
 }
@@ -72,9 +73,16 @@ export async function findSessionByCode(code: string): Promise<SessionRow | null
   return result.rows[0] ?? null;
 }
 
-export async function markSessionAuthorized(sessionId: string, code: string): Promise<void> {
+export async function markSessionAuthorized(sessionId: string, userId: string): Promise<void> {
   await query(
-    `UPDATE sessions SET code = $1 WHERE id = $2`,
-    [code, sessionId],
+    `UPDATE sessions SET authorized = true, user_id = $2 WHERE id = $1`,
+    [sessionId, userId],
+  );
+}
+
+export async function setAuthorizationCode(sessionId: string, code: string): Promise<void> {
+  await query(
+    `UPDATE sessions SET code = $2 WHERE id = $1`,
+    [sessionId, code],
   );
 }

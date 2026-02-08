@@ -5,8 +5,10 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js"
+    "dev": "node --env-file=.env --import=tsx src/index.ts",
+    "dev:watch": "tsx watch --env-file=.env src/index.ts",
+    "start": "node dist/index.js",
+    "migrate": "tsx --env-file=.env src/db/migrate.ts"
   },
   "dependencies": {
     "hono": "^4.7.0",
@@ -14,6 +16,7 @@
     "pg": "^8.13.1",
     "cbor-x": "^1.6.0",
     "ws": "^8.18.0",
+    "bcrypt": "^5.1.1",
     "spec-sdk": "workspace:*"
   },
   "devDependencies": {
@@ -21,6 +24,7 @@
     "tsx": "^4.19.2",
     "@types/node": "^22.12.0",
     "@types/pg": "^8.11.11",
-    "@types/ws": "^8.5.13"
+    "@types/ws": "^8.5.13",
+    "@types/bcrypt": "^5.0.2"
   }
 }

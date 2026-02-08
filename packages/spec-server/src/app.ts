@@ -4,6 +4,7 @@ import { oauthRoutes } from "./routes/oauth.js";
 import { wellKnownRoutes } from "./routes/well-known.js";
 import { registryRoutes } from "./routes/registry.js";
 import { scoreRoutes } from "./routes/scores.js";
+import { authUiRoutes } from "./routes/auth-ui.js";
 import { csrfMiddleware } from "./middleware/csrf.js";
 import { rateLimitMiddleware } from "./middleware/rate-limit.js";
 
@@ -29,6 +30,7 @@ export function createApp() {
 
   app.use("/registry/*", rateLimitMiddleware({ windowMs: 60_000, maxRequests: 30 }));
 
+  app.route("/", authUiRoutes());
   app.route("/.well-known", wellKnownRoutes());
   app.route("/oauth", oauthRoutes());
   app.route("/registry", registryRoutes());
