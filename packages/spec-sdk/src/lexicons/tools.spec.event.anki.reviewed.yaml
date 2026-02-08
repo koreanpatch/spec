@@ -1,0 +1,44 @@
+lexicon: 1
+id: tools.spec.event.anki.reviewed
+description: User reviewed a flashcard in an SRS system.
+defs:
+  main:
+    type: record
+    key: tid
+    record:
+      type: object
+      required:
+        - cardId
+        - grade
+        - reviewedAt
+        - appDid
+        - signature
+      properties:
+        cardId:
+          type: string
+        front:
+          type: string
+        back:
+          type: string
+        grade:
+          type: integer
+          minimum: 0
+          maximum: 5
+        interval:
+          type: integer
+          minimum: 0
+        languageCode:
+          type: string
+          maxLength: 10
+        difficulty:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        reviewedAt:
+          type: string
+          format: datetime
+        appDid:
+          type: string
+          format: did
+        signature:
+          type: string
