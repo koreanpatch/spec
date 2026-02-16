@@ -22,6 +22,10 @@
     "./crypto/keys": {
       "types": "./dist/crypto/keys.d.ts",
       "import": "./dist/crypto/keys.js"
+    },
+    "./crypto/signing-ed25519": {
+      "types": "./dist/crypto/signing-ed25519.d.ts",
+      "import": "./dist/crypto/signing-ed25519.js"
     }
   },
   "main": "dist/index.js",
@@ -30,7 +34,9 @@
   "scripts": {
     "generate": "tsx scripts/generate.ts",
     "build": "pnpm generate && tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@atproto/api": "^0.15.0",
@@ -43,6 +49,7 @@
     "yaml": "^2.7.0",
     "typescript": "^5.7.3",
     "tsx": "^4.19.2",
-    "@types/node": "^22.12.0"
+    "@types/node": "^22.12.0",
+    "vitest": "^2.1.0"
   }
 }
