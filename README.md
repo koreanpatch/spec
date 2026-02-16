@@ -1,50 +1,47 @@
-# SPEC - Sustained Proficiency through Experience and Consumption
+# SPEC
 
-**SPEC** is a decentralized identity and data management system for language learning applications. It provides a unified, tamper-proof profile that passively collects vocabulary encounters, reading progress, listening history, and achievement data across multiple apps-all owned by the learner, shared with permission, and cryptographically signed to ensure integrity.
+**Sustained Proficiency through Experience and Consumption.**
 
-## What It Does
+SPEC gives learners a single, portable profile and a **proficiency score** that reflects real usage across the whole ecosystem—without locking data inside any one app, and without making learning competitive.
 
-SPEC solves the cold-start and data-sharing problems in language learning by creating a single source of truth for learner data:
+## The idea
 
-- **Unified learner identity** - One DID-based account works across all connected apps
-- **Passive data collection** - Track vocabulary exposure, content consumption, and learning activities automatically with zero friction
-- **Tamper-proof ledger** - All data is cryptographically signed to prevent users from inflating their skills or history
-- **Cross-app data sharing** - Apps can read and write to shared learner profiles with explicit permission
-- **Portable progress** - Learners own their data and can move between apps freely
-- **Self-documenting schema** - Growing, type-safe profile template that evolves with learner needs
+Language learning is Balkanized. Your vocabulary in App A doesn’t exist in App B. Progress in one reader doesn’t feed another. In the old internet, that was normal: each product kept “its” data. In this era, we believe **you should own your data** and that a shared, tamper-evident record of what you’ve actually done is the right basis for level, recommendations, and portability.
 
-## Why It Matters
+SPEC does two things:
 
-Language learning apps typically operate in silos. When you switch from App A to App B, you lose your vocabulary history, reading progress, and achievement data. SPEC eliminates this friction:
+1. **Passive, cross-app data** – Integrations report events (words encountered, content completed, reviews done). No single app has to build or own the full picture. The more apps that integrate, the richer and more accurate the picture.
+2. **A score that behaves like ELO, but isn’t zero-sum** – [ELO](https://en.wikipedia.org/wiki/Elo_rating_system) is a rating that updates from outcomes: you do something, your rating moves. In SPEC we use the same idea—signed events update your score—but there’s no opponent and no competition. You’re not taking points from anyone. The score is just a compact view of your own trajectory, derived from your own attested activity.
 
-- **For learners** - Your data follows you everywhere, improving recommendations and eliminating redundant work
-- **For developers** - Skip building complex user profiling systems; integrate with SPEC and get rich user data immediately
-- **For data integrity** - The signed ledger ensures that progress metrics, test scores, and achievements are trustworthy
+So: **massive integration** for passive data collection, **user-owned data** and cryptographic signing so the record is trustworthy, and a **non-competitive ELO-like score** so learners and apps have a shared, evolving measure of proficiency.
 
-## Architecture
+## Why it matters
 
-SPEC is built on [ATProto](https://atproto.com) and follows its lexicon-based schema system:
+- **Learners** – One identity, one ledger, one score. Your history and level move with you. No starting over when you switch apps.
+- **Developers** – Integrate once; contribute events and (with permission) read profile and score. No need to build your own proficiency model or lock users in.
+- **Integrity** – Events are signed by apps and verified by the system. The score is computed from a ledger that can’t be faked or edited after the fact.
 
-- **spec-sdk** - Lexicon definitions (YAML → TypeScript types)
-- **spec-server** - OAuth 2.1 server with signed data ledger
-- **spec-client** - Client SDK for app integration
+## How it’s built
 
-All endpoints and data structures are defined as lexicons in `packages/spec-sdk/src/lexicons/`. This ensures type safety across the entire stack and makes the API self-documenting.
+SPEC follows [ATProto](https://atproto.com) culture: lexicon-first schemas, DIDs for identity, signed data, and open tooling. This repo holds the **libraries**; the **server** we run is separate.
 
-### The Ledger
+- **spec-sdk** (this repo) – Lexicons (YAML → types), crypto, shared types. Source of truth for events and API shape.
+- **spec-client** (this repo) – Client for apps: OAuth, DPoP, tokens, event writing, encryption, score fetch.
+- **spec-server** ([koreanpatch/spec-server](https://github.com/koreanpatch/spec-server)) – The provider we host: auth, OAuth 2.1 (PAR, authorize, token), event verification, ELO-style scoring, app registry. Apps and users talk to this server.
 
-Every action that modifies learner data (vocabulary encounters, content completions, test scores, etc.) is recorded in a cryptographically signed ledger. This ensures:
+Events and APIs are defined in `packages/spec-sdk/src/lexicons/`. The server consumes signed events, verifies them, and updates the ledger and scores. You own the data; we run the verification and aggregation.
 
-- **Authenticity** - Data comes from verified apps, not user manipulation
-- **Immutability** - Historical records cannot be altered or deleted
-- **Auditability** - Apps can verify the source and timestamp of any data point
-- **Trust** - Skill assessments and progress metrics reflect real learning history
+### Verifiable lexicons (Ed25519)
 
-## Quick Start
+For lexicon verification claims, the SDK provides Ed25519 signing and verification: `signRecordEd25519`, `verifyRecordEd25519`, and key helpers. See [docs/VERIFIABLE_LEXICONS.md](docs/VERIFIABLE_LEXICONS.md) for a guide.
 
-### Installation
+## Quick start
 
 ```sh
 git clone https://github.com/koreanpatch/spec.git
 cd spec
 pnpm install
+pnpm build
+```
+
+Use the SDK and client in your app and point them at the hosted SPEC server. For running or deploying the server, see [spec-server](https://github.com/koreanpatch/spec-server).
