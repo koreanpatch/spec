@@ -1,0 +1,31 @@
+lexicon: 1
+id: tools.spec.verification.claim
+description: A signed attestation by an issuer that a specific record is valid.
+defs:
+  main:
+    type: record
+    key: tid
+    record:
+      type: object
+      required:
+        - record
+        - date
+        - signedBy
+        - signature
+      properties:
+        record:
+          type: string
+          format: at-uri
+        date:
+          type: string
+          format: datetime
+        signedBy:
+          type: string
+          format: did
+        signature:
+          type: string
+        issuerPublicKey:
+          type: string
+          description: >
+            Optional JWK of the issuer's public key. If omitted, the verifier
+            must resolve the key from the issuer's DID document or a known issuer registry.

@@ -33,7 +33,16 @@ Events and APIs are defined in `packages/spec-sdk/src/lexicons/`. The server con
 
 ### Verifiable lexicons (Ed25519)
 
-For lexicon verification claims, the SDK provides Ed25519 signing and verification: `signRecordEd25519`, `verifyRecordEd25519`, and key helpers. See [docs/VERIFIABLE_LEXICONS.md](docs/VERIFIABLE_LEXICONS.md) for a guide.
+For lexicon verification claims, the SDK provides Ed25519 signing and verification: `signRecordEd25519`, `verifyRecordEd25519`, and key helpers. See [docs/verifiable-lexicons.md](docs/verifiable-lexicons.md) for a guide.
+
+### Verification claims
+
+SPEC supports third-party issuer attestations through `tools.spec.verification.claim`.
+
+- Event signatures (`appDid` + `signature`) protect app-written event integrity.
+- Verification claims provide a separate issuer-signed credential layer over existing records.
+
+See [docs/verification-claims.md](docs/verification-claims.md) for schema details, key distribution options, and verification flow.
 
 ## Quick start
 
