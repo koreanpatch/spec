@@ -1,0 +1,54 @@
+spec
+----
+
+spec gives learners a single, portable profile and a proficiency score that
+reflects real usage across the whole ecosystem—without locking data inside any
+one app, and without making learning competitive.
+
+lexicons
+--------
+
+there are two provided lexicons:
+- co.specscore.actor.profile
+- co.specscore.verified
+
+`co.specscore.verified` contains the signature, who it was signed by, and a
+pointer to the record being verified.
+
+`co.specscore.actor.profile` is a record used to expose the issuers public key.
+
+lexicons can be generated via the following commands:
+```bash
+pnpm lexicon:emit    # Generate JSON schemas from TypeScript
+pnpm lexicon:import  # Generate TypeScript from JSON schemas
+```
+
+generating a signature
+----------------------
+
+```node
+// 1. canonicalize the record
+const canonical = canonicalJson(record)
+
+// 2. sign with your private key
+const sig = await crypto.subtle.sign(
+  { name: "ECDSA", hash: "SHA-256" },
+  privateKey,
+  new TextEncoder().encode(canonical)
+)
+
+// 3. store base64url signature in the record
+record.signature = base64url(sig)
+```
+
+a reasonable flow then follows as:
+1. fetch the original record content referenced by `"record": "at:did:xxx"`.
+2. serialize it in a canonical form (e.g. using a deterministic JSON canonicalization scheme).
+3. sign the record.
+4. store the signature in the verification record.
+
+to verify a signed record:
+1. fetch the original record again.
+2. re-canonicalize the record.
+3. use `signedBy`’s public key to verify the signature.
+4. if verification fails, the record has been tampered with (or it wasn’t produced by that issuer).

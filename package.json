@@ -1,17 +1,18 @@
 {
-  "private": true,
-  "packageManager": "pnpm@10.28.1",
+  "name": "spec",
+  "module": "index.ts",
   "type": "module",
+  "private": true,
   "scripts": {
-    "generate": "pnpm -r --filter spec-sdk generate",
-    "build": "pnpm -r build"
+    "lexicon:emit": "NODE_OPTIONS='--import tsx' npx prototypey gen-emit ./out ./src/lexicons/**/*.ts",
+    "lexicon:import": "npx prototypey gen-from-json ./src/lexicons ./out/**/*.json"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "bcrypt", "sharp"]
+  "dependencies": {
+    "@atproto/api": "^0.15.27",
+    "prototypey": "^0.3.8"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
-    "tsx": "^4.19.2",
-    "@types/node": "^22.12.0"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

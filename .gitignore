@@ -1,9 +1,20 @@
-node_modules/
-dist/
-*.tsbuildinfo
-packages/spec-sdk/src/generated/
-tmp-lexicons/
+# dependencies
+node_modules
+
+# output
+out
+
+# dotenv environment variable files
 .env
-.env.*
-!.env.example
-.cursor/
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
+# caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# Finder (MacOS) folder config
+.DS_Store
