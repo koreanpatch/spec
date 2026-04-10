@@ -8,14 +8,15 @@ one app, and without making learning competitive.
 lexicons
 --------
 
-there are two provided lexicons:
+there are two lexicons:
+
 - co.specscore.actor.profile
-- co.specscore.verified
+  exposes the issuer's public key as an ATProto multikey string.
 
-`co.specscore.verified` contains the signature, who it was signed by, and a
-pointer to the record being verified.
+- co.specscore.attestation
+  contains the base64url signature, the DID of the signer, and an AT URI
+  pointing to the record that was signed.
 
-`co.specscore.actor.profile` is a record used to expose the issuers public key.
 
 lexicons can be generated via the following commands:
 ```bash
@@ -23,32 +24,43 @@ pnpm lexicon:emit    # Generate JSON schemas from TypeScript
 pnpm lexicon:import  # Generate TypeScript from JSON schemas
 ```
 
-generating a signature
-----------------------
+keys
+----
 
-```node
-// 1. canonicalize the record
-const canonical = canonicalJson(record)
+each app (issuer) in the ecosystem holds an ECDSA P-256 keypair. the private
+key stays on the issuer's server and is used to sign records. the public key is
+published in the issuer's co.specscore.actor.profile record so that anyone can
+verify signatures without contacting the issuer directly.
 
-// 2. sign with your private key
-const sig = await crypto.subtle.sign(
-  { name: "ECDSA", hash: "SHA-256" },
-  privateKey,
-  new TextEncoder().encode(canonical)
-)
+generate a private and public key with goat:
 
-// 3. store base64url signature in the record
-record.signature = base64url(sig)
+```bash
+goat key generate -t P-256
 ```
 
-a reasonable flow then follows as:
-1. fetch the original record content referenced by `"record": "at:did:xxx"`.
-2. serialize it in a canonical form (e.g. using a deterministic JSON canonicalization scheme).
-3. sign the record.
-4. store the signature in the verification record.
+signing a record
+----------------
 
-to verify a signed record:
-1. fetch the original record again.
-2. re-canonicalize the record.
-3. use `signedBy`’s public key to verify the signature.
-4. if verification fails, the record has been tampered with (or it wasn’t produced by that issuer).
+1. canonicalize the record using the JSON Canonicalization Scheme (RFC 8785).
+2. sign the canonical bytes with the issuer's private key.
+3. store the base64url-encoded signature in co.specscore.attestation.
+
+```js
+const signature = signRecord(record, process.env.PRIVATE_KEY)
+```
+
+verifying a record
+------------------
+
+1. fetch the original record referenced by co.specscore.attestation.
+2. canonicalize it.
+3. fetch the issuer's public key from co.specscore.attestation.signedBy's
+   co.specscore.actor.profile.
+4. verify the signature against the canonical bytes.
+
+```js
+const valid = verifyRecord(record, signature, publicKey)
+```
+
+if verification fails, the record has been tampered with or was not produced
+by the claimed issuer.

@@ -1,18 +1,23 @@
 {
-  "name": "spec",
+  "name": "specscore.co",
   "module": "index.ts",
   "type": "module",
   "private": true,
   "scripts": {
-    "lexicon:emit": "NODE_OPTIONS='--import tsx' npx prototypey gen-emit ./out ./src/lexicons/**/*.ts",
-    "lexicon:import": "npx prototypey gen-from-json ./src/lexicons ./out/**/*.json"
+    "lexicon:emit": "NODE_OPTIONS='--import tsx' bunx prototypey gen-emit ./out ./lexicons/**/*.ts",
+    "lexicon:import": "bunx prototypey gen-from-json ./lexicons ./out/**/*.json"
   },
   "dependencies": {
     "@atproto/api": "^0.15.27",
     "prototypey": "^0.3.8"
   },
   "devDependencies": {
+    "@types/bun": "latest",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "@atproto/crypto": "^0.4.5",
+    "@noble/curves": "^2.0.1",
+    "@scure/base": "^2.0.0",
+    "canonicalize": "^3.0.0"
   }
 }
