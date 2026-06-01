@@ -3,25 +3,6 @@
   "id": "tools.spec.profile.approvedApps",
   "description": "User's list of apps authorized to decrypt their data.",
   "defs": {
-    "main": {
-      "type": "record",
-      "key": "literal:self",
-      "record": {
-        "type": "object",
-        "required": [
-          "apps"
-        ],
-        "properties": {
-          "apps": {
-            "type": "array",
-            "items": {
-              "type": "ref",
-              "ref": "#approvedApp"
-            }
-          }
-        }
-      }
-    },
     "approvedApp": {
       "type": "object",
       "required": [
@@ -41,6 +22,25 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": [
+          "apps"
+        ],
+        "properties": {
+          "apps": {
+            "type": "array",
+            "items": {
+              "type": "ref",
+              "ref": "#approvedApp"
+            }
           }
         }
       }
