@@ -1,0 +1,208 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.event.encounter_defs",
+  "description": "Shared type definitions for SPEC user-record encounter events (lemma, compound, register, dialect, entity, grammar pattern). Provides the cross-record vocabulary used by RFCs 008–012. Distinct from tools.spec.event.defs (which holds signedEventBase and morphemeEncounterBase) and exists to avoid repeating the same field set across the user-records suite.\n",
+  "defs": {
+    "hostLemmaRef": {
+      "type": "object",
+      "description": "Canonical reference to a dictionary headword. Resolves either to a unified_entry (5-character base62 id) or to a headword_group (canonical-headword-normalized string for FK-free cross-app interop).\n",
+      "properties": {
+        "unifiedEntryId": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 5,
+          "description": "5-character base62 id (Glossary §1.3) of the unified_entries row. Canonical FK on the dictionary side.\n"
+        },
+        "headwordGroupId": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 5,
+          "description": "5-character base62 id of the headword_groups row.\n"
+        },
+        "canonicalHeadword": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Canonical headword surface (Glossary Part 1). Used when the client has not yet resolved a base62 id; spec-server resolves it on ingest.\n"
+        },
+        "headwordDisplay": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Normalized surface used for homograph grouping (unified_entries.headword_display). DO NOT use legacy clean_headword.\n"
+        },
+        "tier": {
+          "type": "string",
+          "enum": [
+            "head",
+            "derived",
+            "grammar",
+            "entity",
+            "inflected",
+            "encyclopedic",
+            "idiom",
+            "proverb"
+          ],
+          "description": "Unified-entry tier. Encyclopedic is a distinct tier value (replaces deprecated referent / quasi_entity).\n"
+        }
+      },
+      "required": [
+        "canonicalHeadword"
+      ]
+    },
+    "dictionaryColumnRef": {
+      "type": "object",
+      "description": "Pointer at the specific dict.* column the encounter is grounded in. Used for cross-referential extrapolation (RFC 015). NOT all columns are applicable to every encounter type — the column list is the admissible ground-truth set.\n",
+      "properties": {
+        "table": {
+          "type": "string",
+          "enum": [
+            "dict.unified_entries",
+            "dict.compound_components",
+            "dict.compound_formulas",
+            "dict.entry_register_features",
+            "dict.grammar_patterns",
+            "dict.headword_groups",
+            "dict.synsets",
+            "dict.entity_search_profiles"
+          ],
+          "description": "dict.* table that supplies the ground truth."
+        },
+        "column": {
+          "type": "string",
+          "description": "Column name. Must be the canonical name (not a banned alias)."
+        },
+        "valueAtEncounter": {
+          "description": "Snapshot of the column value at the time of the encounter. Used so that later edits to dict.* do not retroactively change the recorded encounter.\n"
+        }
+      },
+      "required": [
+        "table",
+        "column",
+        "valueAtEncounter"
+      ]
+    },
+    "encounterOutcome": {
+      "type": "string",
+      "description": "auto_read, marked_known, reviewed_correct, mined → Y=1. lookup, hover, click, marked_unknown, reviewed_again, reviewed_incorrect → Y=0.\n",
+      "enum": [
+        "auto_read",
+        "lookup",
+        "hover",
+        "click",
+        "marked_known",
+        "marked_unknown",
+        "mined",
+        "reviewed_again",
+        "reviewed_correct",
+        "reviewed_incorrect"
+      ]
+    },
+    "formalityTier": {
+      "type": "string",
+      "enum": [
+        "intimate",
+        "casual",
+        "standard",
+        "elevated",
+        "ceremonial"
+      ],
+      "description": "Canonical 5-value formality tier (Glossary Part 3). DO NOT use deprecated register_level, register_band, or register_delta values.\n"
+    },
+    "lexicalElevationType": {
+      "type": "string",
+      "enum": [
+        "other_honoring",
+        "self_lowering",
+        "neutral"
+      ],
+      "description": "Categorical honorific behavior (Glossary Part 3). DO NOT use honorific_type / politeness_type.\n"
+    },
+    "situationalRegisterCode": {
+      "type": "string",
+      "enum": [
+        "common",
+        "intimate",
+        "casual_social",
+        "polite_service",
+        "academic",
+        "business",
+        "legal",
+        "medical",
+        "religious",
+        "royal",
+        "bench_level",
+        "in_house",
+        "frozen",
+        "technical",
+        "literary"
+      ],
+      "description": "Canonical situational register code (Glossary Part 8.3).\n"
+    },
+    "speechStyleCode": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "cds",
+        "elderspeak",
+        "facetious",
+        "slang",
+        "stilted",
+        "vulgar_style",
+        "taboo_evasive",
+        "literary_style"
+      ],
+      "description": "Canonical speech style code (Glossary Part 8.4).\n"
+    },
+    "sensitivityClass": {
+      "type": "string",
+      "enum": [
+        "neutral",
+        "vulgar",
+        "hate",
+        "sexual",
+        "taboo"
+      ],
+      "description": "Sensitivity classification (Glossary Part 8.5). Triggers E2E encryption in the client storage pipeline (RFC 016).\n"
+    },
+    "dialectProfileId": {
+      "type": "string",
+      "maxLength": 32,
+      "description": "Canonical dialect profile id. The full set is enumerated in app/utils/dialect_region_map.py in the dictionary repo and mirrored here as a documentation pointer. The 11 canonical regions are: gyeongsang, jeju, chungcheong, hamgyeong, jeolla, gangwon-south, jungang, pyeongan, hwanghae, gangwon-north, munhwaeo. DO NOT use legacy \"dialect_region\" or pyeongbug / standard ad-hoc strings.\n"
+    },
+    "resolverConfidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Confidence that the encounter resolution (e.g. host-lemma id, compound-type label, entity surface) is correct, as assigned by the Sunbi/bibim resolver at encounter time. Below 0.6 should be flagged for review before feeding BKT/IRT.\n"
+    },
+    "hostEojeol": {
+      "type": "object",
+      "description": "The eojeol (whitespace-delimited unit) that the encounter was emitted against, plus its position in the source paragraph. Glossary Part 1 forbids using \"word\" / \"token\" for this unit.\n",
+      "properties": {
+        "eojeolSurface": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Surface eojeol as it appeared in the source text."
+        },
+        "eojeolOffset": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "0-based eojeol index within the source paragraph."
+        },
+        "paragraphCharStart": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional character offset within the source paragraph."
+        },
+        "paragraphCharEnd": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Optional character end offset."
+        }
+      },
+      "required": [
+        "eojeolSurface",
+        "eojeolOffset"
+      ]
+    }
+  }
+}

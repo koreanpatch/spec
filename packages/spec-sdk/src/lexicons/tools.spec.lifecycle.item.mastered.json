@@ -1,0 +1,98 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.lifecycle.item.mastered",
+  "description": "An individual item (lemma or morpheme pattern) has been mastered by a learner. Fired when an item's BKT knowledge probability W_i first crosses the threshold tau.\nThis is a lightweight notification event for downstream consumers (streak tracking, milestone badges, personal analytics). It does not replace bkt_update_event which remains the authoritative per-encounter record.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "itemId",
+          "itemType",
+          "priorW",
+          "posteriorW",
+          "masteredAt",
+          "sessionId",
+          "encounterCountAtMastery",
+          "sourceEventRef"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "The learner who mastered this item. did:plc:... format."
+          },
+          "itemId": {
+            "type": "string",
+            "description": "The mastered item identifier. Format: dict:lemma:{id} or dict:pattern:{id}.\n"
+          },
+          "itemType": {
+            "type": "string",
+            "enum": [
+              "lemma",
+              "pattern"
+            ],
+            "description": "Whether this is a vocabulary lemma or a morpheme pattern."
+          },
+          "priorW": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "W_i immediately before crossing tau. Must be < tau."
+          },
+          "posteriorW": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "W_i immediately after crossing tau. Must be >= tau."
+          },
+          "masteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp when mastery was achieved."
+          },
+          "sessionId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "The BKT fitting session that produced this mastery update. Must match sessionId in the triggering bkt_update_event.\n"
+          },
+          "encounterCountAtMastery": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of encounters required to achieve mastery. For lemmas: typically 5–15 for tau=0.60. For patterns: typically 3–10.\n"
+          },
+          "sourceEventRef": {
+            "type": "string",
+            "description": "AT URI reference to the bkt_update_event record that triggered this mastery. Format: at://did:plc:.../app.bsky.spec.bkt_update_event/{tid}\n"
+          },
+          "difficultyAtMastery": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Item difficulty score at time of mastery (from IRT b_i if available, else static score). Used for analytics: \"mastered a hard item\" vs \"mastered an easy item\".\n"
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written",
+            "description": "Register of the content where mastery was achieved."
+          }
+        }
+      }
+    }
+  }
+}

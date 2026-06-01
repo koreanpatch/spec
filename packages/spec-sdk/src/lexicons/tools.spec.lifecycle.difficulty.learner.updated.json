@@ -1,0 +1,87 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.lifecycle.difficulty.learner.updated",
+  "description": "A learner's perceived difficulty for an item or domain has significantly shifted. Emitted when IRT recalibration shows a meaningful change in the learner's ability estimate or when a learner explicitly rates content difficulty. Used for adaptive content selection and content quality scoring.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "itemId",
+          "priorDifficulty",
+          "posteriorDifficulty",
+          "updatedAt",
+          "changeReason",
+          "sessionId"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "The learner whose difficulty perception changed."
+          },
+          "itemId": {
+            "type": "string",
+            "description": "The item whose perceived difficulty changed. Format: dict:lemma:{id}, dict:pattern:{id}, or domain:read:{id}.\n"
+          },
+          "priorDifficulty": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Item difficulty before this update."
+          },
+          "posteriorDifficulty": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Item difficulty after this update."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of the difficulty update."
+          },
+          "changeReason": {
+            "type": "string",
+            "enum": [
+              "irt_recalibration",
+              "explicit_learner_rating",
+              "error_correction",
+              "content_upgrade"
+            ],
+            "description": "What triggered the difficulty change."
+          },
+          "sessionId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "The session this change occurred within."
+          },
+          "domain": {
+            "type": "string",
+            "description": "Domain this difficulty change applies to (null = general)."
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written",
+            "description": "Register of the content whose difficulty changed."
+          }
+        }
+      }
+    }
+  }
+}

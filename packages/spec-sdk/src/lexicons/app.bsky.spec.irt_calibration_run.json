@@ -1,0 +1,144 @@
+{
+  "lexicon": 1,
+  "id": "app.bsky.spec.irt_calibration_run",
+  "description": "Metadata about a complete IRT calibration run. One record per run. Links to the irt_item_params and irt_ability_state records produced, and captures quality metrics for the run.\nA calibration run = one execution of the IRT fitter over the full response matrix. Triggered nightly or on demand when sufficient new response data has accumulated.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "calibrationRunId",
+          "startedAt",
+          "completedAt",
+          "numLearners",
+          "numItems",
+          "numResponseObservations",
+          "method",
+          "converged"
+        ],
+        "properties": {
+          "calibrationRunId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Unique identifier for this run. Format: cal-{date}-{sequence}. Example: cal-2026-05-15-001 Used as a foreign key by irt_item_params, irt_ability_state, and irt_calibration_event records.\n"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When the calibration run started (UTC)."
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "When the calibration run completed (UTC)."
+          },
+          "numLearners": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of learners with response data in this run."
+          },
+          "numItems": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of items for which parameters were estimated."
+          },
+          "numResponseObservations": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Total (learner, item) response pairs used in this run."
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "EAP",
+              "MLE",
+              "WLE"
+            ],
+            "description": "Ability estimation method used: EAP = Expected A Posteriori (Bayesian, recommended) MLE = Maximum Likelihood Estimation WLE = Warmly Weighted Likelihood Estimation\n"
+          },
+          "converged": {
+            "type": "boolean",
+            "description": "Whether the calibration algorithm converged."
+          },
+          "itemParamsUpdated": {
+            "type": "integer",
+            "description": "Number of irt_item_params records written/updated."
+          },
+          "abilityStatesUpdated": {
+            "type": "integer",
+            "description": "Number of irt_ability_state records written/updated."
+          },
+          "calibrationEventsWritten": {
+            "type": "integer",
+            "description": "Number of irt_calibration_event records written."
+          },
+          "fitStatistics": {
+            "type": "object",
+            "properties": {
+              "avgAIC": {
+                "type": "number"
+              },
+              "avgBIC": {
+                "type": "number"
+              },
+              "avgLogLikelihood": {
+                "type": "number"
+              },
+              "itemsFlaggedMisfit": {
+                "type": "integer",
+                "description": "Items with infit > 1.3 indicating model misfit."
+              },
+              "itemsFlaggedGuess": {
+                "type": "integer",
+                "description": "Items where 1PL check suggests p(G) > 0.3."
+              }
+            },
+            "description": "Aggregate fit statistics across all items in this run."
+          },
+          "flaggedItems": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string"
+                },
+                "flagType": {
+                  "type": "string",
+                  "enum": [
+                    "misfit",
+                    "guess",
+                    "no_variance"
+                  ]
+                },
+                "threshold": {
+                  "type": "number",
+                  "description": "The value that triggered the flag."
+                }
+              }
+            },
+            "description": "Items flagged during quality checks, with flag reason."
+          },
+          "holdoutTestResults": {
+            "type": "object",
+            "properties": {
+              "avgAbsoluteError": {
+                "type": "number"
+              },
+              "RMSE": {
+                "type": "number"
+              },
+              "RMSEByBand": {
+                "type": "object",
+                "description": "RMSE broken down by ability band. Keys: beginner, elementary, intermediate, advanced, superior.\n"
+              }
+            },
+            "description": "Cross-validation results on held-out 20% of response data. Measures how well the IRT model predicts held-out responses.\n"
+          }
+        }
+      }
+    }
+  }
+}

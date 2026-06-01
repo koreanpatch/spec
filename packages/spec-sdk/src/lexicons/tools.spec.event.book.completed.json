@@ -1,0 +1,62 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.event.book.completed",
+  "description": "User completed reading a book.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "extends": "tools.spec.event.defs#signedEventBase",
+      "record": {
+        "type": "object",
+        "required": [
+          "bookId",
+          "pageCount",
+          "completedAt"
+        ],
+        "properties": {
+          "bookId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "pageCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "difficulty": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "context": {
+            "type": "string",
+            "description": "Genre or content classification (e.g. literary_fiction, non_fiction)"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written",
+            "description": "Register of the book content"
+          }
+        }
+      }
+    }
+  }
+}

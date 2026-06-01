@@ -1,0 +1,164 @@
+{
+  "lexicon": 1,
+  "id": "app.bsky.spec.bkt_param_fit_result",
+  "description": "Per-learner stage-level summary written after each BKT fitting session. Aggregates per-item W_i updates into V_S (known lemmas), M_S (known patterns), and computes the learner's current stage.\nOne record per learner, key = \"self\" (updated in place each session). thresholdCrossings captures stage promotion events for the learner's history timeline.\nThis record is the authoritative source for a learner's current stage. Stage transitions trigger notifications and badge updates.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "self",
+      "record": {
+        "type": "object",
+        "required": [
+          "userDid",
+          "fittedAt",
+          "sessionId",
+          "vS",
+          "mS",
+          "stage",
+          "vocabularyThreshold",
+          "lemmaStats",
+          "patternStats"
+        ],
+        "properties": {
+          "userDid": {
+            "type": "string",
+            "format": "did",
+            "description": "The learner whose stage was computed."
+          },
+          "fittedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of this fitting run (UTC)."
+          },
+          "sessionId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Groups this result with the bkt_update_event from the same run. Must match sessionId in the corresponding bkt_update_event.\n"
+          },
+          "vS": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of lemmas where W_i >= tau (known lemmas). V_S = count of lemmas with posterior_W >= 0.60.\n"
+          },
+          "mS": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of patterns (morpheme/grammar) where W_i >= tau (known patterns). M_S = count of patterns with posterior_W >= 0.60.\n"
+          },
+          "stage": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Current learner stage (1-10). Computed as the largest S where V_min[S] <= V_S and M_min[S] <= M_S. Stage thresholds (V_min[S], M_min[S]):\n  S1: 500, 40    S2: 1500, 80    S3: 3000, 120    S4: 5000, 160\n  S5: 8000, 200  S6: 12000, 240   S7: 18000, 280   S8: 25000, 320\n  S9: 35000, 360  S10: 50000, 400\n"
+          },
+          "vocabularyThreshold": {
+            "type": "integer",
+            "description": "V_min of the current stage — the minimum known-lemmas required to reach this stage. Used for progress display.\n"
+          },
+          "lemmaStats": {
+            "type": "object",
+            "required": [
+              "totalLemmas",
+              "knownLemmas",
+              "avgW"
+            ],
+            "properties": {
+              "totalLemmas": {
+                "type": "integer",
+                "description": "Total lemmas being tracked for this learner."
+              },
+              "knownLemmas": {
+                "type": "integer",
+                "description": "Lemmas where W_i >= tau."
+              },
+              "avgW": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Average W_i across all tracked lemmas."
+              },
+              "newThisSession": {
+                "type": "integer",
+                "description": "Lemmas that crossed tau during this session."
+              },
+              "droppedThisSession": {
+                "type": "integer",
+                "description": "Lemmas that fell below tau during this session (decay)."
+              }
+            }
+          },
+          "patternStats": {
+            "type": "object",
+            "required": [
+              "totalPatterns",
+              "knownPatterns",
+              "avgW"
+            ],
+            "properties": {
+              "totalPatterns": {
+                "type": "integer",
+                "description": "Total morpheme patterns being tracked for this learner."
+              },
+              "knownPatterns": {
+                "type": "integer",
+                "description": "Patterns where W_i >= tau."
+              },
+              "avgW": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Average W_i across all tracked patterns."
+              },
+              "newThisSession": {
+                "type": "integer",
+                "description": "Patterns that crossed tau during this session."
+              },
+              "droppedThisSession": {
+                "type": "integer",
+                "description": "Patterns that fell below tau during this session (decay)."
+              }
+            }
+          },
+          "thresholdCrossings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "fromStage",
+                "toStage",
+                "crossedAt"
+              ],
+              "properties": {
+                "fromStage": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10,
+                  "description": "Stage before crossing (0 = pre-stage-1)."
+                },
+                "toStage": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10,
+                  "description": "Stage after crossing."
+                },
+                "vAtFrom": {
+                  "type": "integer",
+                  "description": "V_S value at time of crossing."
+                },
+                "mAtFrom": {
+                  "type": "integer",
+                  "description": "M_S value at time of crossing."
+                },
+                "crossedAt": {
+                  "type": "string",
+                  "format": "datetime",
+                  "description": "When the threshold was crossed."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

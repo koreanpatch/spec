@@ -1,0 +1,123 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.lifecycle.bibim.pattern.discovered",
+  "description": "Emitted by the bibim NLP service when a morpheme sequence is parsed that has no entry in PATTERN_TO_STAGE but is judged to be a valid Korean grammatical pattern by the morpheme analyzer.\nConsumers: lexicographer review queue, PATTERN_TO_STAGE expansion pipeline, morpheme inventory gap analysis.\nDeduplication: one event per (hostLemma, surfaceForm) tuple per 24h window.\ntemp:{surfaceForm}:{hash8} format is replaced by lexicographer on review.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "patternId",
+          "surfaceForm",
+          "hostLemma",
+          "discoveredAt",
+          "bibimVersion",
+          "POS",
+          "morphemeBoundaryCount",
+          "confidence",
+          "discoveryCount"
+        ],
+        "properties": {
+          "patternId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Temporary canonical ID assigned by bibim. Format: temp:{surfaceForm}:{hash8} where hash8 is first 8 hex chars of SHA-256(hostLemma + surfaceForm). Example: temp:-노라:3f4a1b2c Replaced by lexicographer when canonicalizing.\n"
+          },
+          "surfaceForm": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "Surface form of the discovered pattern. Examples: -노라, -대요, -긴\n"
+          },
+          "hostLemma": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Lemma this pattern attaches to (as parsed by bibim). Example: 알다, -노라 attaches to 알- (verb stem).\n"
+          },
+          "discoveredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of first discovery."
+          },
+          "discoveryCount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of independent learner encounters that triggered this discovery event today. Deduplication window: 24 hours.\n"
+          },
+          "firstLearnerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "The first learner who triggered this discovery.\n"
+          },
+          "bibimVersion": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Version string of bibim service that made the discovery.\n"
+          },
+          "POS": {
+            "type": "string",
+            "description": "Bibim POS tag for the surface form. Examples: EC (connective ending), EF (final ending), XSN (noun-forming suffix)\n"
+          },
+          "morphemeBoundaryCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Number of morpheme boundaries within surfaceForm. 1 = simple ending. 2+ = agglutinative chain.\n"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Bibim confidence this is a real pattern vs. parsing noise. Below 0.60 likely tokenization artifact. 0.60+ triggers lexicographer task creation.\n"
+          },
+          "sampleSentences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "maxLength": 1024
+                },
+                "sourceUrl": {
+                  "type": "string",
+                  "maxLength": 512
+                }
+              }
+            },
+            "maxLength": 5,
+            "description": "Up to 5 sample sentences where this pattern was observed.\n"
+          },
+          "relatedKnownPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "maxLength": 3,
+            "description": "Bibim-guessed related known patterns for lexicographer context. Example: -노라 may be related to -ㄴ다고 한다 family.\n"
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary",
+              "unknown"
+            ],
+            "default": "unknown",
+            "description": "Best-guessed register from sentence context. Starts as unknown; lexicographer sets canonical on review."
+          }
+        }
+      }
+    }
+  }
+}
