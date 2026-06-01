@@ -1,0 +1,34 @@
+lexicon: 1
+id: tools.spec.event.defs
+description: Shared type definitions for SPEC learning events.
+defs:
+  signedEventBase:
+    type: object
+    required:
+      - appDid
+      - signature
+    properties:
+      appDid:
+        type: string
+        format: did
+      signature:
+        type: string
+      difficulty:
+        type: integer
+        minimum: 0
+        maximum: 10000
+
+  encryptedField:
+    type: object
+    required:
+      - appDid
+      - iv
+      - ct
+    properties:
+      appDid:
+        type: string
+        format: did
+      iv:
+        type: string
+      ct:
+        type: string

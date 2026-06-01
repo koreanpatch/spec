@@ -1,0 +1,112 @@
+lexicon: 1
+id: app.bsky.spec.irt_calibration_event
+description: >
+  A single learner has been ability-estimated within an IRT calibration run.
+  Captures the learner response vector for one learner per calibration run.
+  irt_calibration_run groups all learners. Key = tid (immutable, unique).
+
+defs:
+  main:
+    type: record
+    key: tid
+    record:
+      type: object
+      required:
+        - calibrationRunId
+        - learnerDid
+        - abilityTheta
+        - abilityStdError
+        - responses
+        - calibratedAt
+        - method
+        - priorDistribution
+
+      properties:
+
+        calibrationRunId:
+          type: string
+          maxLength: 128
+          description: >
+            Foreign key to irt_calibration_run. Format cal-{date}-{sequence}.
+            Example: cal-2026-05-15-001
+
+        learnerDid:
+          type: string
+          format: did
+          description: The learner whose ability was estimated. did:plc:... format.
+
+        abilityTheta:
+          type: number
+          description: >
+            Ability on logit scale. Typical range [-3,+3].
+            At theta=b_i, P(correct)=0.50. Constraints: [-4, +4].
+
+        abilityStdError:
+          type: number
+          minimum: 0
+          maximum: 2
+          description: Standard error of theta. Reflects response data quality.
+
+        responses:
+          type: array
+          description: Learner response vector for all items in this calibration run.
+          items:
+            type: object
+            required:
+              - itemId
+              - outcome
+              - aI
+              - bI
+              - pY1
+            properties:
+              itemId:
+                type: string
+                description: Item identifier. Format dict:lemma:{id} or dict:pattern:{id}.
+              outcome:
+                type: integer
+                enum: [0, 1]
+                description: 1 = correct, 0 = incorrect.
+              aI:
+                type: number
+                minimum: 0.01
+                description: Item discrimination a_i. Constraint a_i > 0.
+              bI:
+                type: number
+                description: Item difficulty b_i. Constraint b_i in [-4, +4].
+              pY1:
+                type: number
+                minimum: 0
+                maximum: 1
+                description: >
+                  Model-implied P(Y=1 | theta, a_i, b_i) = 1/(1+exp(-a_i*(theta-b_i))).
+                  For cross-validation: compare outcome vs pY1 to assess model fit.
+              responseTimeMs:
+                type: integer
+                description: Response time in milliseconds. Optional.
+
+        calibratedAt:
+          type: string
+          format: datetime
+          description: UTC timestamp when ability was estimated.
+
+        method:
+          type: string
+          enum: [EAP, MLE, WLE]
+          description: >
+            EAP = Expected A Posteriori (Bayesian, recommended; handles all-correct/all-incorrect)
+            MLE = Maximum Likelihood Estimation (undefined for extreme response patterns)
+            WLE = Warmly Weighted Likelihood Estimation (MLE with Fisher information weighting)
+
+        priorDistribution:
+          type: string
+          enum: [normal, uniform]
+          description: >
+            Prior for ability in Bayesian estimation.
+            normal = N(0, 1) standard normal (recommended for EAP).
+            uniform = flat prior (used for MLE or non-Bayesian methods).
+
+        domain:
+          type: string
+          description: >
+            Domain of calibration. null means general ability estimate.
+            Domain-specific ability enables cross-domain transfer learning.

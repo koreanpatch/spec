@@ -5,14 +5,13 @@ defs:
   main:
     type: record
     key: tid
+    extends: tools.spec.event.defs#signedEventBase
     record:
       type: object
       required:
         - cardId
         - grade
         - reviewedAt
-        - appDid
-        - signature
       properties:
         cardId:
           type: string
@@ -24,12 +23,15 @@ defs:
           type: integer
           minimum: 0
           maximum: 5
+          description: SRS grade (0-5, SM-2 algorithm convention)
         interval:
           type: integer
           minimum: 0
+          description: Current interval in days (from SRS system)
         languageCode:
           type: string
           maxLength: 10
+          default: ko
         difficulty:
           type: integer
           minimum: 0
@@ -37,8 +39,13 @@ defs:
         reviewedAt:
           type: string
           format: datetime
-        appDid:
+        register:
           type: string
-          format: did
-        signature:
-          type: string
+          enum:
+            - formal_written
+            - formal_speech
+            - informal_speech
+            - colloquial
+            - literary
+          default: formal_written
+          description: Register of the card content

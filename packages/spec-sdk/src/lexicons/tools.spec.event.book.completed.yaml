@@ -5,14 +5,13 @@ defs:
   main:
     type: record
     key: tid
+    extends: tools.spec.event.defs#signedEventBase
     record:
       type: object
       required:
         - bookId
         - pageCount
         - completedAt
-        - appDid
-        - signature
       properties:
         bookId:
           type: string
@@ -24,17 +23,24 @@ defs:
         languageCode:
           type: string
           maxLength: 10
+          default: ko
         difficulty:
           type: integer
           minimum: 0
           maximum: 10000
         context:
           type: string
+          description: Genre or content classification (e.g. literary_fiction, non_fiction)
         completedAt:
           type: string
           format: datetime
-        appDid:
+        register:
           type: string
-          format: did
-        signature:
-          type: string
+          enum:
+            - formal_written
+            - formal_speech
+            - informal_speech
+            - colloquial
+            - literary
+          default: formal_written
+          description: Register of the book content

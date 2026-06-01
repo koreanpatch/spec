@@ -1,0 +1,130 @@
+lexicon: 1
+id: tools.spec.event.morpheme.encountered
+description: >
+  A specific morpheme pattern was encountered within a word during reading.
+  Morphemes are the smallest Meaningful units in Korean — suffixes, prefixes,
+  postpositions, and inflectional endings that carry grammatical function or meaning.
+  
+  This event tracks individual morpheme encounters for BKT parameter updates and
+  spaced repetition scheduling. Each encounter is linked back to a sentence.read
+  event via sourceId, establishing the full provenance chain: sentence.read →
+  word.saved → morpheme.encountered.
+
+  Korean examples:
+    -으려고 (purpose/ intention suffix: 먹으려고 = try to eat)
+    -게 (purpose/result conjunction suffix)
+    -(으)면 (conditional suffix)
+    -지 (question/confirm suffix, also exclamatory)
+    -는 (attributive/postposition suffix)
+    -(으)ㄹ까 (speculative suffix)
+    -다면서 (hearsay/confirm suffix)
+    -(으)ㄹ래 (volitional/purpose suffix)
+    -(으)면 좋겠다 (wish/regret suffix)
+    -보다 (comparison/postposition suffix)
+
+defs:
+  main:
+    type: record
+    key: tid
+    extends: tools.spec.event.defs#signedEventBase
+    record:
+      type: object
+      required:
+        - patternId
+        - hostLemma
+        - sourceId
+        - encounterCount
+        - firstEncounteredAt
+      properties:
+        patternId:
+          type: string
+          description: >
+            Unique identifier for the morpheme pattern. Should correspond to
+            pattern codes in the SPEC morpheme taxonomy (e.g. EF_1, EF_2, suffix codes).
+            Used for BKT parameter lookups and IRT calibration.
+        patternLabel:
+          type: string
+          description: Human-readable label for the morpheme (e.g. "purpose_suffix_yeong", "conditional_eo")
+        hostLemma:
+          type: string
+          description: >
+            The dictionary form (lemma) of the word containing this morpheme.
+            E.g., for "먹으려고" the hostLemma is "먹다" (eat).
+        hostEojeol:
+          type: string
+          description: >
+            The full eojeol (space-separated word token) as it appeared in the sentence.
+            E.g., "먹으려고" in "밥을 먹으려고 한다".
+        sourceId:
+          type: string
+          description: >
+            Reference to the sentence.read event this encounter belongs to.
+            Establishes provenance: sentence.read(sourceId=X) → morpheme.encountered(sourceId=X).
+        morphemePosition:
+          type: integer
+          description: >
+            0-based index of the morpheme within the host eojeol.
+            For agglutinative Korean, multiple morphemes can appear in sequence within one word.
+            E.g., "먹으려고" → [0:먹, 1:으, 2:려고] — position 1 is the尊敬 suffix -으-.
+        structuralType:
+          type: string
+          enum:
+            - EF_ending
+            - EP_postposition
+            - ES_suffix
+            - ET_conjunction
+            - EV_verb_suffix
+            - EN_noun_suffix
+          description: >
+            Structural category of the morpheme (from SPEC morpheme taxonomy):
+            EF: endings (formal/informal markers, tense, mood)
+            EP: postpositions (particles like -은, -을, -에서)
+            ES: suffixes (lexical suffixes attached to nouns/verbs)
+            ET: conjunctive suffixes (cause, purpose, condition)
+            EV: verb suffixes
+            EN: noun suffixes
+        segmentBoundaries:
+          type: string
+          description: >
+            For compound morphemes, the segmentation points within the host eojeol.
+            Format: comma-separated start:end offsets. E.g., "0:3,3:5,5:8" for "먹:으:려고".
+        encounterCount:
+          type: integer
+          minimum: 1
+          description: >
+            Total number of times this pattern has been encountered across all reading sessions.
+            Starts at 1 for first encounter. Persisted and incremented on each new encounter.
+        firstEncounteredAt:
+          type: string
+          format: datetime
+          description: Timestamp of first encounter. Set once at first encounter and never changed.
+        lastEncounteredAt:
+          type: string
+          format: datetime
+          description: Timestamp of most recent encounter of this pattern
+        contexts:
+          type: array
+          items:
+            type: string
+          description: >
+            Up to 5 recent sentence contexts where this morpheme was encountered.
+            Allows pattern review and exemplar-based learning.
+        register:
+          type: string
+          enum:
+            - formal_written
+            - formal_speech
+            - informal_speech
+            - colloquial
+            - literary
+          default: formal_written
+          description: Register of the source content where this morpheme was encountered
+        languageCode:
+          type: string
+          maxLength: 10
+          default: ko
+        difficulty:
+          type: integer
+          minimum: 0
+          maximum: 10000
+          description: Pre-computed difficulty score for this morpheme pattern

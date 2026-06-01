@@ -1,0 +1,89 @@
+lexicon: 1
+id: tools.spec.lifecycle.item.forgotten
+description: >
+  A previously mastered item has fallen below the mastery threshold tau
+  after a period of non-practice. Emitted when W_i crosses from >= tau to < tau.
+  Inverse signal of item.mastered. Deduplication: one event per (learnerDid, itemId) per 24h.
+defs:
+  main:
+    type: record
+    key: tid
+    record:
+      type: object
+      required:
+        - learnerDid
+        - itemId
+        - itemType
+        - priorW
+        - posteriorW
+        - forgottenAt
+        - sessionId
+        - encounterCountBeforeForgetting
+        - daysSinceLastEncounter
+        - sourceEventRef
+      properties:
+        learnerDid:
+          type: string
+          format: did
+          description: The learner who forgot this item.
+        itemId:
+          type: string
+          description: >
+            The forgotten item identifier.
+            Format: dict:lemma:{id} or dict:pattern:{id}.
+        itemType:
+          type: string
+          enum:
+            - lemma
+            - pattern
+          description: Whether this is a vocabulary lemma or a morpheme pattern.
+        priorW:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: W_i immediately before dropping below tau. Must be >= tau.
+        posteriorW:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: W_i immediately after falling below tau. Must be < tau.
+        forgottenAt:
+          type: string
+          format: datetime
+          description: UTC timestamp when forgetting was detected.
+        sessionId:
+          type: string
+          maxLength: 128
+          description: The BKT fitting session that detected this forgetting.
+        encounterCountBeforeForgetting:
+          type: integer
+          minimum: 1
+          description: Total encounters before forgetting.
+        daysSinceLastEncounter:
+          type: number
+          minimum: 0
+          description: Days since last encounter. High values indicate decay not slip.
+        sourceEventRef:
+          type: string
+          description: AT URI reference to the triggering bkt_update_event.
+        forgettingMechanism:
+          type: string
+          enum:
+            - decay
+            - interference
+            - unknown
+          description: Best-guessed cause of forgetting.
+        languageCode:
+          type: string
+          maxLength: 10
+          default: ko
+        register:
+          type: string
+          enum:
+            - formal_written
+            - formal_speech
+            - informal_speech
+            - colloquial
+            - literary
+          default: formal_written
+          description: Register of content where item was last encountered.
