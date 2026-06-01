@@ -1,0 +1,178 @@
+lexicon: 1
+id: tools.spec.profile.extrapolation_state
+description: >
+  A snapshot of derived signals for a single learner, computed from
+  the user's tools.spec.event.* stream and joined against dict.*.
+  Keyed on literal:self (one row per learner, mutable). See RFC 015
+  in
+  spec-research-suite/docs/lexicons/proposals/015_extrapolation_state_and_small_entry_enrichment.md.
+defs:
+  main:
+    type: record
+    key: literal:self
+    record:
+      type: object
+      required:
+        - learnerDid
+        - generatedAt
+        - specVersion
+        - components
+      properties:
+        learnerDid:
+          type: string
+          format: did
+        generatedAt:
+          type: string
+          format: datetime
+        specVersion:
+          type: string
+          maxLength: 16
+        baseEventRange:
+          type: object
+          properties:
+            from:
+              type: string
+              format: datetime
+            to:
+              type: string
+              format: datetime
+            eventCount:
+              type: integer
+              minimum: 0
+        components:
+          type: object
+          properties:
+            V:
+              type: object
+              properties:
+                overallW:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                perStage:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                perRegisterBand:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                perOriginType:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+            M:
+              type: object
+              properties:
+                overallW:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                perPatternCluster:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+                perRegisterBand:
+                  type: object
+                  additionalProperties:
+                    type: number
+                    minimum: 0
+                    maximum: 1
+            D:
+              type: object
+              properties:
+                domainsTouched:
+                  type: integer
+                  minimum: 0
+                domainCoverage:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+            T:
+              type: object
+              properties:
+                activeDaysLast30:
+                  type: integer
+                  minimum: 0
+                activeDaysLast90:
+                  type: integer
+                  minimum: 0
+                retentionAt30:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                retentionAt90:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+        decayResistant:
+          type: object
+          properties:
+            stablePatternCount:
+              type: integer
+              minimum: 0
+            noisyPatternCount:
+              type: integer
+              minimum: 0
+            stablePatterns:
+              type: array
+              items:
+                type: string
+                maxLength: 128
+            noisyPatterns:
+              type: array
+              items:
+                type: string
+                maxLength: 128
+        smallEntrySupport:
+          type: object
+          properties:
+            total:
+              type: integer
+              minimum: 0
+            byEncounterCount:
+              type: object
+              properties:
+                one:
+                  type: integer
+                  minimum: 0
+                two:
+                  type: integer
+                  minimum: 0
+                three:
+                  type: integer
+                  minimum: 0
+                four:
+                  type: integer
+                  minimum: 0
+                fivePlus:
+                  type: integer
+                  minimum: 0
+            byTier:
+              type: object
+              additionalProperties:
+                type: integer
+                minimum: 0
+        pipelineCounters:
+          type: object
+          properties:
+            totalEncounters:
+              type: integer
+              minimum: 0
+            encountersByType:
+              type: object
+              additionalProperties:
+                type: integer
+                minimum: 0
+            joinSurvivalRate:
+              type: number
+              minimum: 0
+              maximum: 1

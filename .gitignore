@@ -7,3 +7,9 @@ tmp-lexicons/
 .env.*
 !.env.example
 .cursor/
+docs/implementation/.checkpoints/bibim_parser.last_run.json
+docs/implementation/.checkpoints/dictionary.last_run.json
+docs/implementation/.checkpoints/spec-research-suite.last_run.json
+docs/implementation/.checkpoints/spec.last_run.json
+docs/implementation/.checkpoints/sunbi.last_run.json
+docs/implementation/SPEC_impl_tracker.md

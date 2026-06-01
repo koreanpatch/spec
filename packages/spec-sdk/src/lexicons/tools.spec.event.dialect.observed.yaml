@@ -1,0 +1,84 @@
+lexicon: 1
+id: tools.spec.event.dialect.observed
+description: >
+  A learner observed a Korean lexeme in a non-standard dialect form.
+  Observation, not outcome. See RFC 010 in
+  spec-research-suite/docs/lexicons/proposals/010_register_and_dialect_encounter_atproto.md.
+defs:
+  main:
+    type: record
+    key: tid
+    extends: tools.spec.event.defs#signedEventBase
+    record:
+      type: object
+      required:
+        - learnerDid
+        - sourceId
+        - hostEojeol
+        - hostLemma
+        - dialectProfileId
+        - observedAt
+      properties:
+        learnerDid:
+          type: string
+          format: did
+        sourceId:
+          type: string
+          maxLength: 256
+        hostEojeol:
+          type: object
+          ref: tools.spec.event.encounter_defs#hostEojeol
+        hostLemma:
+          type: object
+          ref: tools.spec.event.encounter_defs#hostLemmaRef
+        dialectProfileId:
+          type: string
+          ref: tools.spec.event.encounter_defs#dialectProfileId
+        observedSurface:
+          type: string
+          maxLength: 64
+        observedHeadwordDisplay:
+          type: string
+          maxLength: 128
+        variantLink:
+          type: object
+          properties:
+            standardFormLemma:
+              type: object
+              ref: tools.spec.event.encounter_defs#hostLemmaRef
+            variantEdgeType:
+              type: string
+              enum:
+                - ending_substitution
+                - vocabulary_substitution
+                - phonological_realization
+            confidence:
+              type: number
+              ref: tools.spec.event.encounter_defs#resolverConfidence
+        encounterCount:
+          type: integer
+          minimum: 1
+        firstEncounteredAt:
+          type: string
+          format: datetime
+        dictionaryRefs:
+          type: array
+          items:
+            type: object
+            ref: tools.spec.event.encounter_defs#dictionaryColumnRef
+        sentenceContext:
+          type: object
+          properties:
+            surfaceSentence:
+              type: string
+              maxLength: 512
+            sourceUrl:
+              type: string
+              format: uri
+            sourceDomain:
+              type: string
+              maxLength: 64
+            languageCode:
+              type: string
+              maxLength: 10
+              default: ko

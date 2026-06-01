@@ -1,0 +1,104 @@
+lexicon: 1
+id: tools.spec.event.entity.encountered
+description: >
+  A learner encountered a Korean entity (proper noun) or encyclopedic
+  concept. Covers both tier='entity' and tier='encyclopedic'. See
+  RFC 011 in
+  spec-research-suite/docs/lexicons/proposals/011_entity_and_propernoun_encounter_atproto.md.
+defs:
+  main:
+    type: record
+    key: tid
+    extends: tools.spec.event.defs#signedEventBase
+    record:
+      type: object
+      required:
+        - learnerDid
+        - sourceId
+        - hostEojeol
+        - hostLemma
+        - entityType
+        - observedAt
+      properties:
+        learnerDid:
+          type: string
+          format: did
+        sourceId:
+          type: string
+          maxLength: 256
+        hostEojeol:
+          type: object
+          ref: tools.spec.event.encounter_defs#hostEojeol
+        hostLemma:
+          type: object
+          ref: tools.spec.event.encounter_defs#hostLemmaRef
+        entityType:
+          type: string
+          enum:
+            - person
+            - location
+            - organization
+            - title
+            - out_of_scope
+        wikidataId:
+          type: string
+          maxLength: 32
+        encyclopedicCategory:
+          type: string
+          maxLength: 64
+        synsetId:
+          type: string
+          maxLength: 32
+        isProperNoun:
+          type: boolean
+        entityRef:
+          type: object
+          properties:
+            headwordGroupId:
+              type: string
+              minLength: 5
+              maxLength: 5
+            entityRole:
+              type: string
+              enum:
+                - primary
+                - secondary
+                - reconfirmed
+        outcome:
+          type: string
+          ref: tools.spec.event.encounter_defs#encounterOutcome
+        Y:
+          type: integer
+          enum: [0, 1]
+        isFirstEncounter:
+          type: boolean
+        confidence:
+          type: number
+          ref: tools.spec.event.encounter_defs#resolverConfidence
+        encounterCount:
+          type: integer
+          minimum: 1
+        firstEncounteredAt:
+          type: string
+          format: datetime
+        dictionaryRefs:
+          type: array
+          items:
+            type: object
+            ref: tools.spec.event.encounter_defs#dictionaryColumnRef
+        sentenceContext:
+          type: object
+          properties:
+            surfaceSentence:
+              type: string
+              maxLength: 512
+            sourceUrl:
+              type: string
+              format: uri
+            sourceDomain:
+              type: string
+              maxLength: 64
+            languageCode:
+              type: string
+              maxLength: 10
+              default: ko

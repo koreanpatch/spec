@@ -1,0 +1,149 @@
+lexicon: 1
+id: tools.spec.event.compound.encountered
+description: >
+  A Korean compound (noun-noun or verb-verb) was encountered as a
+  unit. See RFC 009 in
+  spec-research-suite/docs/lexicons/proposals/009_compound_encounter_atproto.md.
+
+  Korean examples:
+    학교앞에서 (compoundType=noun_native, components=[학교, 앞])
+    먹고가다 (compoundType=verbal, components=[먹-, -고, 가-], connectiveMorpheme=-고)
+defs:
+  main:
+    type: record
+    key: tid
+    extends: tools.spec.event.defs#signedEventBase
+    record:
+      type: object
+      required:
+        - learnerDid
+        - sourceId
+        - hostEojeol
+        - compoundType
+        - compositeLemma
+        - outcome
+        - encounteredAt
+      properties:
+        learnerDid:
+          type: string
+          format: did
+        sourceId:
+          type: string
+          maxLength: 256
+        hostEojeol:
+          type: object
+          ref: tools.spec.event.encounter_defs#hostEojeol
+        compositeSurface:
+          type: string
+          maxLength: 64
+        compositeLemma:
+          type: object
+          ref: tools.spec.event.encounter_defs#hostLemmaRef
+        compoundType:
+          type: string
+          enum:
+            - verbal
+            - noun_native
+            - noun_hanja
+            - noun_hybrid
+        components:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items:
+            type: object
+            properties:
+              unifiedEntryId:
+                type: string
+                minLength: 5
+                maxLength: 5
+              canonicalHeadword:
+                type: string
+                maxLength: 64
+              componentRole:
+                type: string
+                enum:
+                  - head_noun
+                  - modifier
+                  - coordinate
+              tier:
+                type: string
+                enum:
+                  - head
+                  - derived
+                  - grammar
+                  - entity
+                  - inflected
+                  - encyclopedic
+                  - idiom
+                  - proverb
+            required:
+              - canonicalHeadword
+              - componentRole
+        connectiveMorpheme:
+          type: object
+          properties:
+            surface:
+              type: string
+              maxLength: 16
+            patternId:
+              type: string
+              maxLength: 128
+            confidence:
+              type: number
+              ref: tools.spec.event.encounter_defs#resolverConfidence
+        transparency:
+          type: object
+          properties:
+            transparencyTier:
+              type: string
+              enum:
+                - transparent
+                - semi_transparent
+                - opaque
+            transparencyScore:
+              type: number
+              minimum: 0
+              maximum: 1
+            compositionality:
+              type: number
+              minimum: 0
+              maximum: 1
+        outcome:
+          type: string
+          ref: tools.spec.event.encounter_defs#encounterOutcome
+        Y:
+          type: integer
+          enum: [0, 1]
+        isFirstEncounter:
+          type: boolean
+        confidence:
+          type: number
+          ref: tools.spec.event.encounter_defs#resolverConfidence
+        encounterCount:
+          type: integer
+          minimum: 1
+        firstEncounteredAt:
+          type: string
+          format: datetime
+        dictionaryRefs:
+          type: array
+          items:
+            type: object
+            ref: tools.spec.event.encounter_defs#dictionaryColumnRef
+        sentenceContext:
+          type: object
+          properties:
+            surfaceSentence:
+              type: string
+              maxLength: 512
+            sourceUrl:
+              type: string
+              format: uri
+            sourceDomain:
+              type: string
+              maxLength: 64
+            languageCode:
+              type: string
+              maxLength: 10
+              default: ko
