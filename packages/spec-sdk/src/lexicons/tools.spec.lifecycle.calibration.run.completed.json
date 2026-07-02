@@ -1,7 +1,7 @@
 {
   "lexicon": 1,
   "id": "tools.spec.lifecycle.calibration.run.completed",
-  "description": "A complete IRT calibration run has finished. Emitted by the IRT fitter after convergence or failure. Downstream consumers: monitoring dashboards, alert systems, downstream pipelines that depend on updated irt_item_params.\n",
+  "description": "A complete ability-calibration run has finished, per SPEC's private calibration model. Emitted by the calibration fitter after convergence or failure. Downstream consumers: monitoring dashboards, alert systems, downstream pipelines that depend on updated item parameters (held privately, not on this public firehose).\n",
   "defs": {
     "main": {
       "type": "record",
@@ -21,7 +21,7 @@
           "calibrationRunId": {
             "type": "string",
             "maxLength": 128,
-            "description": "Foreign key to irt_calibration_run."
+            "description": "Foreign key to SPEC's private calibration-run record."
           },
           "completedAt": {
             "type": "string",
@@ -44,11 +44,11 @@
           },
           "numItemParamsUpdated": {
             "type": "integer",
-            "description": "Number of irt_item_params records written/updated."
+            "description": "Number of private item-parameter records written/updated."
           },
           "numAbilityStatesUpdated": {
             "type": "integer",
-            "description": "Number of irt_ability_state records written."
+            "description": "Number of private ability-state records written."
           },
           "failureReason": {
             "type": "string",

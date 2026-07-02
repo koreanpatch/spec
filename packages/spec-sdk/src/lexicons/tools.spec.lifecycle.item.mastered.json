@@ -1,7 +1,7 @@
 {
   "lexicon": 1,
   "id": "tools.spec.lifecycle.item.mastered",
-  "description": "An individual item (lemma or morpheme pattern) has been mastered by a learner. Fired when an item's BKT knowledge probability W_i first crosses the threshold tau.\nThis is a lightweight notification event for downstream consumers (streak tracking, milestone badges, personal analytics). It does not replace bkt_update_event which remains the authoritative per-encounter record.\n",
+  "description": "An individual item (lemma or morpheme pattern) has been mastered by a learner, per SPEC's private knowledge-tracing model. This is a lightweight notification event for downstream consumers (streak tracking, milestone badges, personal analytics). The authoritative per-encounter interpretation record lives in SPEC's private backend, not on the public firehose.\n",
   "defs": {
     "main": {
       "type": "record",
@@ -57,7 +57,7 @@
           "sessionId": {
             "type": "string",
             "maxLength": 128,
-            "description": "The BKT fitting session that produced this mastery update. Must match sessionId in the triggering bkt_update_event.\n"
+            "description": "The learning session that produced this mastery update, per SPEC's private fitting session bookkeeping.\n"
           },
           "encounterCountAtMastery": {
             "type": "integer",
@@ -66,7 +66,7 @@
           },
           "sourceEventRef": {
             "type": "string",
-            "description": "AT URI reference to the bkt_update_event record that triggered this mastery. Format: at://did:plc:.../app.bsky.spec.bkt_update_event/{tid}\n"
+            "description": "Opaque reference to the private interpretation record that triggered this mastery event. Resolved internally by SPEC's backend; not a public AT-URI collection.\n"
           },
           "difficultyAtMastery": {
             "type": "integer",

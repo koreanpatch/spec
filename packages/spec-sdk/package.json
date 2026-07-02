@@ -35,6 +35,7 @@
     "generate": "tsx scripts/generate.ts",
     "build": "pnpm generate && tsc",
     "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
   },

@@ -43,7 +43,7 @@
           },
           "sourceEventRef": {
             "type": "string",
-            "description": "AT URI reference to the bkt_update_event or session.started that detected the break."
+            "description": "Reference to the private interpretation record, or to the session.started event, that detected the break."
           },
           "streakType": {
             "type": "string",

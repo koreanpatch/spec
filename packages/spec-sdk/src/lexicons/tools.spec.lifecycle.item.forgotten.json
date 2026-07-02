@@ -72,7 +72,7 @@
           },
           "sourceEventRef": {
             "type": "string",
-            "description": "AT URI reference to the triggering bkt_update_event."
+            "description": "Opaque reference to the private interpretation record that detected this forgetting event. Resolved internally by SPEC's backend; not a public AT-URI collection."
           },
           "forgettingMechanism": {
             "type": "string",

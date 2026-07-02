@@ -1,0 +1,27 @@
+---
+description: SPEC protocol rules — NSID namespace and public lexicon litmus test
+alwaysApply: true
+---
+
+# SPEC protocol rules
+
+This repo (`spec`) is the **public, MIT-licensed** protocol layer for the SPEC ecosystem. Everything committed here is public. Follow these rules on every change under `packages/spec-sdk/src/lexicons/` and whenever proposing a new lexicon.
+
+## 1. NSID namespace: `tools.spec.*` only
+
+Every SPEC lexicon file MUST use the `tools.spec.*` NSID namespace (the `id` field and filename both). Never use `app.bsky.*` — that namespace is reserved by Bluesky and SPEC has no rights to publish records under it. Never invent a third namespace convention.
+
+This repo previously shipped 6 lexicons under `app.bsky.spec.*` that also leaked private BKT/IRT model internals (fitted stage thresholds, posterior cutoffs). They were removed. Do not reintroduce anything under `app.bsky.*`, and treat any new lexicon file that doesn't start with `tools.spec.` as a bug to flag immediately.
+
+## 2. Public lexicon litmus test
+
+Before adding or modifying a lexicon, check both:
+
+1. **Does it describe a raw, verifiable, app-agnostic EVENT?** ("word looked up," "session completed," "item reviewed," "book completed.") Any app should be able to emit it; any consumer should be able to verify it was signed by that app/DID.
+2. **Does it avoid encoding SPEC's private interpretation of that event?** No BKT posteriors, ELO deltas, fitted difficulty weights, stage/level thresholds, or any other output of SPEC's proprietary scoring math. That interpretation layer lives exclusively in SPEC's private backend (not this repo).
+
+If a candidate lexicon field looks like a score, a posterior, a fitted weight, or a threshold rather than a fact about what a user did, **do not add it directly** — flag it for internal review before merging. This keeps the public protocol stable even while the private scoring algorithm iterates.
+
+## 3. Never leak private implementation details in docs/comments
+
+Do not write proprietary formula weights, BKT parameter values, threshold tables, or scoring-algorithm internals into any file in this repo (docs, code comments, lexicon descriptions, tests). You may reference concepts by name (e.g. "E_diff difficulty grading," "BKT-based learner modeling") without giving numeric internals. Those live in the private research/backend repos.

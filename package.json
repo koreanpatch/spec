@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "generate": "pnpm -r --filter spec-sdk generate",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test"
   },
   "pnpm": {
     "onlyBuiltDependencies": ["esbuild", "bcrypt", "sharp"]

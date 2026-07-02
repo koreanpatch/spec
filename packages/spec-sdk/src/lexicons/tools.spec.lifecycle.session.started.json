@@ -24,7 +24,7 @@
           "sessionId": {
             "type": "string",
             "maxLength": 128,
-            "description": "Unique session identifier. Format: session-{date}-{seq}. Groups all bkt_update_event and encounter records for this session.\n"
+            "description": "Unique session identifier. Format: session-{date}-{seq}. Groups all encounter records and private interpretation updates for this session.\n"
           },
           "startedAt": {
             "type": "string",
