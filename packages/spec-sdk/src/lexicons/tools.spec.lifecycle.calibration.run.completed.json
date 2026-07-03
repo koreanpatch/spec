@@ -1,0 +1,66 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.lifecycle.calibration.run.completed",
+  "description": "A complete ability-calibration run has finished, per SPEC's private calibration model. Emitted by the calibration fitter after convergence or failure. Downstream consumers: monitoring dashboards, alert systems, downstream pipelines that depend on updated item parameters (held privately, not on this public firehose).\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "calibrationRunId",
+          "completedAt",
+          "numLearners",
+          "numItems",
+          "converged",
+          "numItemParamsUpdated",
+          "numAbilityStatesUpdated"
+        ],
+        "properties": {
+          "calibrationRunId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Foreign key to SPEC's private calibration-run record."
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp when the run completed."
+          },
+          "numLearners": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of learners processed."
+          },
+          "numItems": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of items calibrated."
+          },
+          "converged": {
+            "type": "boolean",
+            "description": "Whether the algorithm converged."
+          },
+          "numItemParamsUpdated": {
+            "type": "integer",
+            "description": "Number of private item-parameter records written/updated."
+          },
+          "numAbilityStatesUpdated": {
+            "type": "integer",
+            "description": "Number of private ability-state records written."
+          },
+          "failureReason": {
+            "type": "string",
+            "description": "If not converged, reason for failure."
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          }
+        }
+      }
+    }
+  }
+}

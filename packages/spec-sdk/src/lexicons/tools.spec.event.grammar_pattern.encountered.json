@@ -1,0 +1,179 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.event.grammar_pattern.encountered",
+  "description": "A learner encountered a Korean grammar pattern that maps to a row in dict.grammar_patterns. Companion to morpheme.encountered. See RFC 012 in spec-research-suite/docs/lexicons/proposals/012_grammar_pattern_encounter_atproto.md.\nKorean examples:\n  공부하고 싶었다 → patternId=pat:grammar:V-고-싶다\n  먹어도 된다    → patternId=pat:grammar:-아-어도-되다\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "extends": "tools.spec.event.defs#signedEventBase",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "sourceId",
+          "hostEojeol",
+          "patternId",
+          "outcome",
+          "encounteredAt"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did"
+          },
+          "sourceId": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "patternId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "pat:grammar:<dict.grammar_patterns.id>. Distinct from pat:spec:v1: morpheme pattern ids.\n"
+          },
+          "patternLabel": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "patternStage": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "patternDifficulty": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "hostEojeol": {
+            "type": "object",
+            "ref": "tools.spec.event.encounter_defs#hostEojeol"
+          },
+          "hostLemma": {
+            "type": "object",
+            "ref": "tools.spec.event.encounter_defs#hostLemmaRef"
+          },
+          "composingMorphemes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "morphemePatternId": {
+                  "type": "string"
+                },
+                "surface": {
+                  "type": "string",
+                  "maxLength": 16
+                },
+                "positionInPattern": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "morphemePatternId",
+                "positionInPattern"
+              ]
+            }
+          },
+          "isCrossEojeol": {
+            "type": "boolean"
+          },
+          "eojeolRange": {
+            "type": "object",
+            "properties": {
+              "startOffset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "endOffset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "surface": {
+                "type": "string",
+                "maxLength": 256
+              }
+            }
+          },
+          "outcome": {
+            "type": "string",
+            "ref": "tools.spec.event.encounter_defs#encounterOutcome"
+          },
+          "Y": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "isFirstEncounter": {
+            "type": "boolean"
+          },
+          "confidence": {
+            "type": "number",
+            "ref": "tools.spec.event.encounter_defs#resolverConfidence"
+          },
+          "encounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of this specific grammar-pattern encounter. Required (see required[]); this was previously listed as required but omitted from properties. Distinct from firstEncounteredAt (first-ever).\n"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds between the construction span becoming visible/available and this outcome being recorded. Optional direct latency signal for the CAS Automaticity (F) axis observation model on the construction's own Level-3 node (B9 Continuous Acquisition Spectrum Model S3.4/S4.2/S5.1). See reference/017_continuous_acquisition_spectrum_hydration.md.\n"
+          },
+          "candidateAnalyses": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#candidateAnalysisRef"
+            },
+            "description": "Top-K bibim candidate analyses for the construction span when genuinely ambiguous, each carrying a raw candidatePatternId + freq. Optional; absent, or a single entry, means the construction identity was effectively unambiguous and patternId is the whole story. Enables the private enumerative/soft-evidence update (B9 S4.7) without requiring disambiguation before this event is emitted.\n"
+          },
+          "encounterCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "firstEncounteredAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "dictionaryRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#dictionaryColumnRef"
+            }
+          },
+          "sentenceContext": {
+            "type": "object",
+            "description": "Copyright-safe source context. Full sentence surface text must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5); the source sentence is identified by contentHash and joined server-side, and its full text lives only in a Tier B record.",
+            "properties": {
+              "content": {
+                "type": "object",
+                "ref": "tools.spec.content.defs#contentRef",
+                "description": "Content-addressed reference (contentHash) to the source sentence. Replaces the removed surfaceSentence field."
+              },
+              "sourceUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "sourceDomain": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "languageCode": {
+                "type": "string",
+                "maxLength": 10,
+                "default": "ko"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

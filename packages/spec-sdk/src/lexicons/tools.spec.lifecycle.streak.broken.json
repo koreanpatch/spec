@@ -1,0 +1,79 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.lifecycle.streak.broken",
+  "description": "A learner's daily practice streak has ended. Emitted when a new BKT session begins but more than 24 hours have passed since the last session, causing the streak counter to reset to zero. Consumers: streak recovery notifications, analytics, retention campaigns.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "streakLength",
+          "brokenAt",
+          "lastSessionEncounterCount",
+          "daysSinceLastSession",
+          "sourceEventRef"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "The learner whose streak broke."
+          },
+          "streakLength": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of consecutive days with at least one encounter."
+          },
+          "brokenAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp when streak was detected as broken."
+          },
+          "lastSessionEncounterCount": {
+            "type": "integer",
+            "description": "Total encounters in the session that was the last day of the streak."
+          },
+          "daysSinceLastSession": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Days elapsed since the last session that would have maintained the streak."
+          },
+          "sourceEventRef": {
+            "type": "string",
+            "description": "Reference to the private interpretation record, or to the session.started event, that detected the break."
+          },
+          "streakType": {
+            "type": "string",
+            "enum": [
+              "daily_lemma",
+              "daily_pattern",
+              "daily_mixed"
+            ],
+            "default": "daily_mixed",
+            "description": "Type of streak that was broken."
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written",
+            "description": "Register of the content that was last consumed before streak break."
+          }
+        }
+      }
+    }
+  }
+}

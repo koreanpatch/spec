@@ -1,6 +1,8 @@
 # SPEC
 
-**Sustained Proficiency through Experience and Consumption.**
+**Sustained Profile of Encounter-based Consolidation.**
+
+*(Earlier materials described SPEC as "Sustained Proficiency through Experience and Consumption" — that phrasing is historical/deprecated; the expansion above is canonical going forward.)*
 
 SPEC gives learners a single, portable profile and a **proficiency score** that reflects real usage across the whole ecosystem—without locking data inside any one app, and without making learning competitive.
 
@@ -23,17 +25,20 @@ So: **massive integration** for passive data collection, **user-owned data** and
 
 ## How it’s built
 
-SPEC follows [ATProto](https://atproto.com) culture: lexicon-first schemas, DIDs for identity, signed data, and open tooling. This repo holds the **libraries**; the **server** we run is separate.
+SPEC follows [ATProto](https://atproto.com) culture: lexicon-first schemas, DIDs for identity, signed data, and open tooling. This repo holds the **libraries**; the **servers** we run are separate, private repos.
 
 - **spec-sdk** (this repo) – Lexicons (YAML → types), crypto, shared types. Source of truth for events and API shape.
 - **spec-client** (this repo) – Client for apps: OAuth, DPoP, tokens, event writing, encryption, score fetch.
-- **spec-server** ([koreanpatch/spec-server](https://github.com/koreanpatch/spec-server)) – The provider we host: auth, OAuth 2.1 (PAR, authorize, token), event verification, ELO-style scoring, app registry. Apps and users talk to this server.
+- **spec-server** ([koreanpatch/spec-server](https://github.com/koreanpatch/spec-server)) – The provider we host: auth, OAuth 2.1 (PAR, authorize, token), event verification, learner profile computation, app registry. Apps and users talk to this server. Private.
+- **spec-score** ([koreanpatch/spec-score](https://github.com/koreanpatch/spec-score)) – A separate hosted service that aggregates a non-competitive, ELO-style trajectory score per user DID from the public ATProto firehose. It shares only DIDs with spec-server, never a database. Private.
 
-Events and APIs are defined in `packages/spec-sdk/src/lexicons/`. The server consumes signed events, verifies them, and updates the ledger and scores. You own the data; we run the verification and aggregation.
+Events and APIs are defined in `packages/spec-sdk/src/lexicons/`, all under the `tools.spec.*` NSID namespace. Both spec-server and spec-score consume signed events (verified via this SDK) and independently compute their own derived state — the ledger of raw events is the shared, portable source of truth; the interpretation of it is not. You own the data; the private backends run the verification and aggregation.
+
+The actual SPEC difficulty-grading algorithm (E_diff, BKT/IRT-based learner modeling) is developed and validated in a private research repo and never lives in this public repo — see [AGENTS.md](AGENTS.md) for the full ecosystem map.
 
 ### Verifiable lexicons (Ed25519)
 
-For lexicon verification claims, the SDK provides Ed25519 signing and verification: `signRecordEd25519`, `verifyRecordEd25519`, and key helpers. See [docs/VERIFIABLE_LEXICONS.md](docs/VERIFIABLE_LEXICONS.md) for a guide.
+For lexicon verification claims, the SDK provides Ed25519 signing and verification: `signRecordEd25519`, `verifyRecordEd25519`, and key helpers. See [docs/verifiable-lexicons.md](docs/verifiable-lexicons.md) for a guide.
 
 ## Quick start
 
@@ -45,3 +50,7 @@ pnpm build
 ```
 
 Use the SDK and client in your app and point them at the hosted SPEC server. For running or deploying the server, see [spec-server](https://github.com/koreanpatch/spec-server).
+
+## For contributors and agents
+
+See [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) for repo conventions, the NSID namespace rule, and known build issues.

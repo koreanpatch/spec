@@ -1,0 +1,215 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.event.compound.encountered",
+  "description": "A Korean compound (noun-noun or verb-verb) was encountered as a unit. See RFC 009 in spec-research-suite/docs/lexicons/proposals/009_compound_encounter_atproto.md.\nKorean examples:\n  학교앞에서 (compoundType=noun_native, components=[학교, 앞])\n  먹고가다 (compoundType=verbal, components=[먹-, -고, 가-], connectiveMorpheme=-고)\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "extends": "tools.spec.event.defs#signedEventBase",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "sourceId",
+          "hostEojeol",
+          "compoundType",
+          "compositeLemma",
+          "outcome",
+          "encounteredAt"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did"
+          },
+          "sourceId": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "hostEojeol": {
+            "type": "object",
+            "ref": "tools.spec.event.encounter_defs#hostEojeol"
+          },
+          "compositeSurface": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "compositeLemma": {
+            "type": "object",
+            "ref": "tools.spec.event.encounter_defs#hostLemmaRef"
+          },
+          "compoundType": {
+            "type": "string",
+            "enum": [
+              "verbal",
+              "noun_native",
+              "noun_hanja",
+              "noun_hybrid"
+            ]
+          },
+          "components": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "properties": {
+                "unifiedEntryId": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 5
+                },
+                "canonicalHeadword": {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                "componentRole": {
+                  "type": "string",
+                  "enum": [
+                    "head_noun",
+                    "modifier",
+                    "coordinate"
+                  ]
+                },
+                "tier": {
+                  "type": "string",
+                  "enum": [
+                    "head",
+                    "derived",
+                    "grammar",
+                    "entity",
+                    "inflected",
+                    "encyclopedic",
+                    "idiom",
+                    "proverb"
+                  ]
+                }
+              },
+              "required": [
+                "canonicalHeadword",
+                "componentRole"
+              ]
+            }
+          },
+          "connectiveMorpheme": {
+            "type": "object",
+            "properties": {
+              "surface": {
+                "type": "string",
+                "maxLength": 16
+              },
+              "patternId": {
+                "type": "string",
+                "maxLength": 128
+              },
+              "confidence": {
+                "type": "number",
+                "ref": "tools.spec.event.encounter_defs#resolverConfidence"
+              }
+            }
+          },
+          "transparency": {
+            "type": "object",
+            "properties": {
+              "transparencyTier": {
+                "type": "string",
+                "enum": [
+                  "transparent",
+                  "semi_transparent",
+                  "opaque"
+                ]
+              },
+              "transparencyScore": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "compositionality": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            }
+          },
+          "outcome": {
+            "type": "string",
+            "ref": "tools.spec.event.encounter_defs#encounterOutcome"
+          },
+          "Y": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "isFirstEncounter": {
+            "type": "boolean"
+          },
+          "confidence": {
+            "type": "number",
+            "ref": "tools.spec.event.encounter_defs#resolverConfidence"
+          },
+          "encounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of this specific compound encounter. Required (see required[]); this was previously listed as required but omitted from properties. Distinct from firstEncounteredAt (first-ever).\n"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds between the composite eojeol becoming visible/available and this outcome being recorded. Optional direct latency signal for the CAS Automaticity (F) axis observation model on the compound's own Level-1 node (B9 Continuous Acquisition Spectrum Model S3.4/S4.2/S5.1). See reference/017_continuous_acquisition_spectrum_hydration.md.\n"
+          },
+          "candidateAnalyses": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#candidateAnalysisRef"
+            },
+            "description": "Top-K bibim candidate analyses for the composite eojeol when genuinely ambiguous, each carrying a raw freq. Optional; absent, or a single entry, means the compound segmentation was effectively unambiguous and compositeLemma is the whole story. Enables the private enumerative/soft-evidence update (B9 S4.7) without requiring disambiguation before this event is emitted.\n"
+          },
+          "encounterCount": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "firstEncounteredAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "dictionaryRefs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#dictionaryColumnRef"
+            }
+          },
+          "sentenceContext": {
+            "type": "object",
+            "description": "Copyright-safe source context. Full sentence surface text must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5); the source sentence is identified by contentHash and joined server-side, and its full text lives only in a Tier B record.",
+            "properties": {
+              "content": {
+                "type": "object",
+                "ref": "tools.spec.content.defs#contentRef",
+                "description": "Content-addressed reference (contentHash) to the source sentence. Replaces the removed surfaceSentence field."
+              },
+              "sourceUrl": {
+                "type": "string",
+                "format": "uri"
+              },
+              "sourceDomain": {
+                "type": "string",
+                "maxLength": 64
+              },
+              "languageCode": {
+                "type": "string",
+                "maxLength": 10,
+                "default": "ko"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

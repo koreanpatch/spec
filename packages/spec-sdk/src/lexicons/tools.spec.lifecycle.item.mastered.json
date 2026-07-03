@@ -1,0 +1,78 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.lifecycle.item.mastered",
+  "description": "A learner mastered an individual item (lemma or morpheme pattern). Milestone notification for badges and analytics — not a BKT posterior dump. Authoritative per-item model state lives in spec-server's private database.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "itemId",
+          "itemType",
+          "masteredAt",
+          "sessionId",
+          "encounterCountAtMastery",
+          "sourceEventRef"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "The learner who mastered this item."
+          },
+          "itemId": {
+            "type": "string",
+            "description": "The mastered item identifier. Format: dict:lemma:{id} or dict:pattern:{id}.\n"
+          },
+          "itemType": {
+            "type": "string",
+            "enum": [
+              "lemma",
+              "pattern"
+            ],
+            "description": "Whether this is a vocabulary lemma or a morpheme pattern."
+          },
+          "masteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp when mastery was achieved."
+          },
+          "sessionId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "The learning session that produced this mastery notification."
+          },
+          "encounterCountAtMastery": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number of encounters recorded before this mastery milestone."
+          },
+          "sourceEventRef": {
+            "type": "string",
+            "description": "Opaque, server-resolvable reference to the private tools.spec.private.learner.spectrumState update (spec-server) whose W crossing triggered this milestone. Correlation token only — it does NOT carry priorW/posteriorW or any (W, kappa, F) value inline; the authoritative per-node state stays private. New records MAY instead use the structured tools.spec.event.defs#privateRecordRef shape (refType 'spectrumState'). See RECORD_REFERENCE_HIERARCHY.md S2."
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written",
+            "description": "Register of the content where mastery was achieved."
+          }
+        }
+      }
+    }
+  }
+}

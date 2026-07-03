@@ -1,0 +1,82 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.lifecycle.stage.promoted",
+  "description": "A learner was promoted to a new SPEC stage. Lightweight milestone notification for badges and downstream UX. Authoritative stage computation lives in spec-server's private backend.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "fromStage",
+          "toStage",
+          "promotedAt",
+          "sessionId",
+          "sourceEventRef"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did",
+            "description": "The learner who was promoted."
+          },
+          "fromStage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Stage before promotion. 0 = pre-stage-1."
+          },
+          "toStage": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Stage after promotion. Must be fromStage + 1."
+          },
+          "promotedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp when promotion was recorded."
+          },
+          "sessionId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "The session associated with this promotion."
+          },
+          "sourceEventRef": {
+            "type": "string",
+            "description": "Opaque reference to the private state record that triggered this event."
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written"
+          },
+          "milestoneType": {
+            "type": "string",
+            "enum": [
+              "beginner_promotion",
+              "stage_5",
+              "stage_10",
+              "advanced",
+              "superior"
+            ],
+            "description": "Milestone label for badge assignment."
+          }
+        }
+      }
+    }
+  }
+}

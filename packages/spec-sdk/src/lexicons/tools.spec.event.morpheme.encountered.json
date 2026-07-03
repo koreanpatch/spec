@@ -1,0 +1,143 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.event.morpheme.encountered",
+  "description": "A specific morpheme pattern was encountered within a word during reading. Morphemes are the smallest Meaningful units in Korean — suffixes, prefixes, postpositions, and inflectional endings that carry grammatical function or meaning.\nThis event tracks individual morpheme encounters for BKT parameter updates and spaced repetition scheduling. Each encounter is linked back to a sentence.read event via sourceId, establishing the full provenance chain: sentence.read → word.saved → morpheme.encountered.\nKorean examples:\n  -으려고 (purpose/ intention suffix: 먹으려고 = try to eat)\n  -게 (purpose/result conjunction suffix)\n  -(으)면 (conditional suffix)\n  -지 (question/confirm suffix, also exclamatory)\n  -는 (attributive/postposition suffix)\n  -(으)ㄹ까 (speculative suffix)\n  -다면서 (hearsay/confirm suffix)\n  -(으)ㄹ래 (volitional/purpose suffix)\n  -(으)면 좋겠다 (wish/regret suffix)\n  -보다 (comparison/postposition suffix)\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "extends": "tools.spec.event.defs#signedEventBase",
+      "record": {
+        "type": "object",
+        "required": [
+          "patternId",
+          "hostLemma",
+          "sourceId",
+          "encounterCount",
+          "firstEncounteredAt",
+          "outcome",
+          "encounteredAt"
+        ],
+        "properties": {
+          "patternId": {
+            "type": "string",
+            "description": "Unique identifier for the morpheme pattern. Should correspond to pattern codes in the SPEC morpheme taxonomy (e.g. EF_1, EF_2, suffix codes). Used for BKT parameter lookups and IRT calibration.\n"
+          },
+          "patternLabel": {
+            "type": "string",
+            "description": "Human-readable label for the morpheme (e.g. \"purpose_suffix_yeong\", \"conditional_eo\")"
+          },
+          "hostLemma": {
+            "type": "string",
+            "description": "The dictionary form (lemma) of the word containing this morpheme. E.g., for \"먹으려고\" the hostLemma is \"먹다\" (eat).\n"
+          },
+          "hostEojeol": {
+            "type": "string",
+            "description": "The full eojeol (space-separated word token) as it appeared in the sentence. E.g., \"먹으려고\" in \"밥을 먹으려고 한다\".\n"
+          },
+          "sourceId": {
+            "type": "string",
+            "description": "Reference to the sentence.read event this encounter belongs to. Establishes provenance: sentence.read(sourceId=X) → morpheme.encountered(sourceId=X).\n"
+          },
+          "morphemePosition": {
+            "type": "integer",
+            "description": "0-based index of the morpheme within the host eojeol. For agglutinative Korean, multiple morphemes can appear in sequence within one word. E.g., \"먹으려고\" → [0:먹, 1:으, 2:려고] — position 1 is the尊敬 suffix -으-.\n"
+          },
+          "structuralType": {
+            "type": "string",
+            "enum": [
+              "EF_ending",
+              "EP_postposition",
+              "ES_suffix",
+              "ET_conjunction",
+              "EV_verb_suffix",
+              "EN_noun_suffix"
+            ],
+            "description": "Structural category of the morpheme (from SPEC morpheme taxonomy): EF: endings (formal/informal markers, tense, mood) EP: postpositions (particles like -은, -을, -에서) ES: suffixes (lexical suffixes attached to nouns/verbs) ET: conjunctive suffixes (cause, purpose, condition) EV: verb suffixes EN: noun suffixes\n"
+          },
+          "segmentBoundaries": {
+            "type": "string",
+            "description": "For compound morphemes, the segmentation points within the host eojeol. Format: comma-separated start:end offsets. E.g., \"0:3,3:5,5:8\" for \"먹:으:려고\".\n"
+          },
+          "encounterCount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Total number of times this pattern has been encountered across all reading sessions. Starts at 1 for first encounter. Persisted and incremented on each new encounter.\n"
+          },
+          "firstEncounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of first encounter. Set once at first encounter and never changed."
+          },
+          "lastEncounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "Timestamp of most recent encounter of this pattern"
+          },
+          "contexts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Up to 5 recent sentence contexts where this morpheme was encountered. Allows pattern review and exemplar-based learning.\n"
+          },
+          "outcome": {
+            "type": "string",
+            "ref": "tools.spec.event.encounter_defs#encounterOutcome",
+            "description": "BKT-grade outcome of this morpheme encounter, aligned with tools.spec.event.lemma.encountered so the M-axis has the same clean per-encounter signal as the V/compound/grammar axes. auto_read/marked_known/reviewed_correct/mined -> Y=1; lookup/hover/click/marked_unknown/reviewed_again/reviewed_incorrect -> Y=0.\n"
+          },
+          "Y": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "Precomputed BKT-grade Y derived from outcome. Optional; consumers may re-derive from outcome via the canonical encounterOutcome mapping."
+          },
+          "encounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of this specific morpheme encounter. Distinct from firstEncounteredAt (first-ever) and lastEncounteredAt; this is the event time used for BKT sequencing and cross-app dedupe (eventId).\n"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds between the host eojeol becoming visible/available and this encounter being recorded. Optional direct latency signal for the CAS Automaticity (F) axis observation model (B9 Continuous Acquisition Spectrum Model S3.4/S5.1); when absent, F falls back to the coarser outcome-based proxy. See reference/017_continuous_acquisition_spectrum_hydration.md.\n"
+          },
+          "candidateAnalyses": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#candidateAnalysisRef"
+            },
+            "description": "Top-K bibim candidate analyses for the host eojeol when genuinely ambiguous, each carrying a raw candidatePatternId + freq (bibim's own enumerate-every-parse output). Optional; absent, or a single entry, means the eojeol was effectively unambiguous and patternId is the whole story. Enables the private enumerative/soft-evidence update (B9 S4.7) -- e.g. an eojeol like 안 that could be negation-adverb, noun, or a contracted modifier -- without requiring disambiguation before this event is emitted.\n"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written",
+            "description": "Register of the source content where this morpheme was encountered"
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "difficulty": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Pre-computed difficulty score for this morpheme pattern"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.profile.learnerState",
+  "description": "Curated public summary of a learner's SPEC profile, written by spec-server (singleton, key literal:self). Exposes human-readable level, settled counts, and growth zone — not raw BKT posteriors, thresholds, or per-item model state. See docs/learner-data-architecture.md.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": [
+          "specLevel",
+          "computedAt"
+        ],
+        "properties": {
+          "specLevel": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "AND-gated integer SPEC level (1–10)."
+          },
+          "specDecimal": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10,
+            "description": "Optional display decimal (level + progress toward next level)."
+          },
+          "eloRating": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Optional overall ELO trajectory score mirror; canonical ELO lives in tools.spec.profile.elo."
+          },
+          "settledLemmas": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of lemma families considered settled for the current level."
+          },
+          "settledMorphemes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of morpheme patterns considered settled for the current level."
+          },
+          "settledDomains": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Count of content domains with sufficient settled encounters."
+          },
+          "weeksAtLevel": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Consecutive weeks at or above the current level thresholds."
+          },
+          "growthZoneLow": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Lower bound of the learner's recommended E_diff growth window."
+          },
+          "growthZoneHigh": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Upper bound of the learner's recommended E_diff growth window."
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "datetime"
+          }
+        }
+      }
+    }
+  }
+}

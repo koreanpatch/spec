@@ -1,0 +1,45 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.content.difficultyBand",
+  "description": "Public catalog difficulty label for a content unit: text level and zone only. Does not expose E_diff module scores, weight profiles, or per-level curves — those live in spec-server's private content_rating cache. See docs/lexicon-public-private-audit.md.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "any",
+      "record": {
+        "type": "object",
+        "required": [
+          "content",
+          "textLevel",
+          "zoneAtLevel",
+          "provenance"
+        ],
+        "properties": {
+          "content": {
+            "type": "object",
+            "ref": "tools.spec.content.defs#contentRef"
+          },
+          "textLevel": {
+            "type": "integer",
+            "ref": "tools.spec.content.defs#specLevel",
+            "description": "User-agnostic SPEC text level band for this content."
+          },
+          "zoneAtLevel": {
+            "type": "string",
+            "ref": "tools.spec.content.defs#zone",
+            "description": "Zone classification at textLevel for a default reference profile."
+          },
+          "contentRatingRef": {
+            "type": "object",
+            "ref": "tools.spec.event.defs#privateRecordRef",
+            "description": "Optional opaque reference to the private tools.spec.private.content.contentRating record (spec-server) that this public band was derived from. Lets spec-server correlate the public label with the full E_diff module vector without exposing it. Outside consumers cannot dereference it. refType SHOULD be 'contentRating'. See RECORD_REFERENCE_HIERARCHY.md S2."
+          },
+          "provenance": {
+            "type": "object",
+            "ref": "tools.spec.content.defs#catalogProvenance"
+          }
+        }
+      }
+    }
+  }
+}

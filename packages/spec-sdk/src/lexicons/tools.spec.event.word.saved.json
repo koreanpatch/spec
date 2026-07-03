@@ -1,0 +1,65 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.event.word.saved",
+  "description": "User saved or looked up a word during reading. The sourceId field links this event to the sentence.read event that preceded the word interaction, establishing a provenance chain: sentence.read → word.saved → morpheme.encountered.\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "extends": "tools.spec.event.defs#signedEventBase",
+      "record": {
+        "type": "object",
+        "required": [
+          "wordId",
+          "languageCode",
+          "savedAt",
+          "sourceId"
+        ],
+        "properties": {
+          "wordId": {
+            "type": "string",
+            "description": "Unique identifier for the saved word"
+          },
+          "word": {
+            "type": "string",
+            "description": "The word text (optional — may be derived from wordId)"
+          },
+          "context": {
+            "type": "string",
+            "description": "Surrounding sentence context where the word appeared"
+          },
+          "sourceId": {
+            "type": "string",
+            "description": "Reference to the sentence.read event this word was saved from. Establishes the provenance chain for BKT updates and morpheme tracking.\n"
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          },
+          "difficulty": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "savedAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "register": {
+            "type": "string",
+            "enum": [
+              "formal_written",
+              "formal_speech",
+              "informal_speech",
+              "colloquial",
+              "literary"
+            ],
+            "default": "formal_written",
+            "description": "Register of the source content where this word was encountered"
+          }
+        }
+      }
+    }
+  }
+}
