@@ -1,7 +1,7 @@
 {
   "lexicon": 1,
   "id": "tools.spec.lifecycle.stage.promoted",
-  "description": "A learner has been promoted to a new stage, per SPEC's private stage-computation model. This is a lightweight notification event for downstream consumers (badges, leaderboard, push notifications). The authoritative stage-state record lives in SPEC's private backend, not on the public firehose.\n",
+  "description": "A learner was promoted to a new SPEC stage. Lightweight milestone notification for badges and downstream UX. Authoritative stage computation lives in spec-server's private backend.\n",
   "defs": {
     "main": {
       "type": "record",
@@ -12,8 +12,6 @@
           "learnerDid",
           "fromStage",
           "toStage",
-          "vAtPromotion",
-          "mAtPromotion",
           "promotedAt",
           "sessionId",
           "sourceEventRef"
@@ -22,13 +20,13 @@
           "learnerDid": {
             "type": "string",
             "format": "did",
-            "description": "The learner who was promoted. did:plc:... format."
+            "description": "The learner who was promoted."
           },
           "fromStage": {
             "type": "integer",
             "minimum": 0,
             "maximum": 10,
-            "description": "Stage before promotion. 0 = pre-stage-1 (never reached any stage). Used to compute total stage promotions in lifetime.\n"
+            "description": "Stage before promotion. 0 = pre-stage-1."
           },
           "toStage": {
             "type": "integer",
@@ -36,44 +34,24 @@
             "maximum": 10,
             "description": "Stage after promotion. Must be fromStage + 1."
           },
-          "vAtPromotion": {
-            "type": "integer",
-            "description": "V_S (known lemmas) at time of promotion. Used to verify promotion validity and for analytics.\n"
-          },
-          "mAtPromotion": {
-            "type": "integer",
-            "description": "M_S (known patterns) at time of promotion. Used to verify promotion validity and for analytics.\n"
-          },
           "promotedAt": {
             "type": "string",
             "format": "datetime",
-            "description": "UTC timestamp when promotion was computed."
+            "description": "UTC timestamp when promotion was recorded."
           },
           "sessionId": {
             "type": "string",
             "maxLength": 128,
-            "description": "The fitting session that produced this promotion, per SPEC's private session bookkeeping.\n"
+            "description": "The session associated with this promotion."
           },
           "sourceEventRef": {
             "type": "string",
-            "description": "Opaque reference to the private state record that triggered this event. Resolved internally by SPEC's backend; not a public AT-URI collection.\n"
-          },
-          "abilityBand": {
-            "type": "string",
-            "enum": [
-              "beginner",
-              "elementary",
-              "intermediate",
-              "advanced",
-              "superior"
-            ],
-            "description": "Ability band at time of promotion, from SPEC's private ability-estimation model, if available. Enables downstream enrichment: \"S5 learner at advanced ability\".\n"
+            "description": "Opaque reference to the private state record that triggered this event."
           },
           "languageCode": {
             "type": "string",
             "maxLength": 10,
-            "default": "ko",
-            "description": "Language context (ko for Korean learning)."
+            "default": "ko"
           },
           "register": {
             "type": "string",
@@ -84,8 +62,7 @@
               "colloquial",
               "literary"
             ],
-            "default": "formal_written",
-            "description": "Register of the content active during this session."
+            "default": "formal_written"
           },
           "milestoneType": {
             "type": "string",
@@ -96,7 +73,7 @@
               "advanced",
               "superior"
             ],
-            "description": "Milestone label for badge assignment. beginner_promotion: any first promotion (fromStage=0) stage_5: reached S5 stage_10: reached S10 advanced: reached S7+ superior: reached S10"
+            "description": "Milestone label for badge assignment."
           }
         }
       }

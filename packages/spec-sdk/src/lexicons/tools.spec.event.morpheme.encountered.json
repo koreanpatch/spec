@@ -14,7 +14,9 @@
           "hostLemma",
           "sourceId",
           "encounterCount",
-          "firstEncounteredAt"
+          "firstEncounteredAt",
+          "outcome",
+          "encounteredAt"
         ],
         "properties": {
           "patternId": {
@@ -78,6 +80,38 @@
               "type": "string"
             },
             "description": "Up to 5 recent sentence contexts where this morpheme was encountered. Allows pattern review and exemplar-based learning.\n"
+          },
+          "outcome": {
+            "type": "string",
+            "ref": "tools.spec.event.encounter_defs#encounterOutcome",
+            "description": "BKT-grade outcome of this morpheme encounter, aligned with tools.spec.event.lemma.encountered so the M-axis has the same clean per-encounter signal as the V/compound/grammar axes. auto_read/marked_known/reviewed_correct/mined -> Y=1; lookup/hover/click/marked_unknown/reviewed_again/reviewed_incorrect -> Y=0.\n"
+          },
+          "Y": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "Precomputed BKT-grade Y derived from outcome. Optional; consumers may re-derive from outcome via the canonical encounterOutcome mapping."
+          },
+          "encounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of this specific morpheme encounter. Distinct from firstEncounteredAt (first-ever) and lastEncounteredAt; this is the event time used for BKT sequencing and cross-app dedupe (eventId).\n"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds between the host eojeol becoming visible/available and this encounter being recorded. Optional direct latency signal for the CAS Automaticity (F) axis observation model (B9 Continuous Acquisition Spectrum Model S3.4/S5.1); when absent, F falls back to the coarser outcome-based proxy. See reference/017_continuous_acquisition_spectrum_hydration.md.\n"
+          },
+          "candidateAnalyses": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#candidateAnalysisRef"
+            },
+            "description": "Top-K bibim candidate analyses for the host eojeol when genuinely ambiguous, each carrying a raw candidatePatternId + freq (bibim's own enumerate-every-parse output). Optional; absent, or a single entry, means the eojeol was effectively unambiguous and patternId is the whole story. Enables the private enumerative/soft-evidence update (B9 S4.7) -- e.g. an eojeol like 안 that could be negation-adverb, noun, or a contracted modifier -- without requiring disambiguation before this event is emitted.\n"
           },
           "register": {
             "type": "string",

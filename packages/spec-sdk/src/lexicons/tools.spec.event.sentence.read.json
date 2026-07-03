@@ -19,9 +19,15 @@
             "type": "string",
             "description": "Globally unique identifier for this sentence read event. Authoritative sourceId used by downstream word.saved and morpheme.encountered events. Format: sha256(sentenceText + userDid + readAt) or application-assigned UUID.\n"
           },
-          "sentence": {
-            "type": "string",
-            "description": "The full sentence text that was read"
+          "content": {
+            "type": "object",
+            "ref": "tools.spec.content.defs#contentRef",
+            "description": "Content-addressed reference (contentHash of the normalized sentence) that replaces the removed surface `sentence` field. Full sentence text must NEVER appear on a public firehose record (see RECORD_REFERENCE_HIERARCHY.md S5); downstream difficulty ratings join by this one-way hash. Recommended on every record so ratings can key on the hash."
+          },
+          "privateRecordRef": {
+            "type": "object",
+            "ref": "tools.spec.event.defs#privateRecordRef",
+            "description": "Optional opaque pointer to the server-only Tier B parse/sentence-analysis record (refType sentenceAnalysis/parseCache) that holds the full surface text and parse tiers. Server-resolvable only; carries no text itself."
           },
           "wordCount": {
             "type": "integer",

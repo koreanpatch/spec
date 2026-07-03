@@ -1,7 +1,7 @@
 {
   "lexicon": 1,
   "id": "tools.spec.lifecycle.item.forgotten",
-  "description": "A previously mastered item has fallen below the mastery threshold tau after a period of non-practice. Emitted when W_i crosses from >= tau to < tau. Inverse signal of item.mastered. Deduplication: one event per (learnerDid, itemId) per 24h.\n",
+  "description": "A previously mastered item is no longer considered mastered. Milestone notification — not a BKT posterior dump. Authoritative per-item model state lives in spec-server's private database.\n",
   "defs": {
     "main": {
       "type": "record",
@@ -12,8 +12,6 @@
           "learnerDid",
           "itemId",
           "itemType",
-          "priorW",
-          "posteriorW",
           "forgottenAt",
           "sessionId",
           "encounterCountBeforeForgetting",
@@ -38,18 +36,6 @@
             ],
             "description": "Whether this is a vocabulary lemma or a morpheme pattern."
           },
-          "priorW": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "W_i immediately before dropping below tau. Must be >= tau."
-          },
-          "posteriorW": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "W_i immediately after falling below tau. Must be < tau."
-          },
           "forgottenAt": {
             "type": "string",
             "format": "datetime",
@@ -58,21 +44,21 @@
           "sessionId": {
             "type": "string",
             "maxLength": 128,
-            "description": "The BKT fitting session that detected this forgetting."
+            "description": "The session during which forgetting was detected."
           },
           "encounterCountBeforeForgetting": {
             "type": "integer",
             "minimum": 1,
-            "description": "Total encounters before forgetting."
+            "description": "Total encounters before this forgetting milestone."
           },
           "daysSinceLastEncounter": {
             "type": "number",
             "minimum": 0,
-            "description": "Days since last encounter. High values indicate decay not slip."
+            "description": "Days since last encounter."
           },
           "sourceEventRef": {
             "type": "string",
-            "description": "Opaque reference to the private interpretation record that detected this forgetting event. Resolved internally by SPEC's backend; not a public AT-URI collection."
+            "description": "Opaque, server-resolvable reference to the private tools.spec.private.learner.spectrumState update (spec-server) whose W/kappa decay crossing detected this forgetting. Correlation token only — it does NOT carry priorW/posteriorW or any (W, kappa, F) value inline; the authoritative per-node state stays private. New records MAY instead use the structured tools.spec.event.defs#privateRecordRef shape (refType 'spectrumState'). See RECORD_REFERENCE_HIERARCHY.md S2."
           },
           "forgettingMechanism": {
             "type": "string",

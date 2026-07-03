@@ -1,0 +1,107 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.learner.cloze.responded",
+  "description": "A learner responded to a zero-anaphora (dropped-argument) cloze probe. This is a raw signal-detection event (hit/miss/false_alarm/correct_reject): it records what was presented and how the learner responded, never a computed d' or context-debt conclusion. It is the ONLY producer of the hit (H) and false-alarm (F) rates the private backend needs for the signal-detection d' that personalizes context debt (CD_effective = CD_text x (1 - d'_norm)). Public AT Proto record (written to PDS, hits the firehose): it carries antecedent-slot metadata, an itemRef, and a contentHash reference only — the full cloze sentence surface is never stored here (see RECORD_REFERENCE_HIERARCHY.md S5) and lives only in a server-only Tier B record via privateRecordRef. Establishes the tools.spec.learner.* public namespace for raw learner-response events (distinct from the blocked interpretation record tools.spec.learner.specScore, which stays private).\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "extends": "tools.spec.event.defs#signedEventBase",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "sourceId",
+          "antecedentType",
+          "responseClass",
+          "presentedAt"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did"
+          },
+          "sourceId": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Reference to the parent sentence.read event the probe was drawn from."
+          },
+          "itemRef": {
+            "type": "object",
+            "description": "The lemma/argument the dropped slot referred to, when resolvable.",
+            "ref": "tools.spec.event.encounter_defs#hostLemmaRef"
+          },
+          "antecedentType": {
+            "type": "string",
+            "enum": [
+              "zero",
+              "overt"
+            ],
+            "description": "Whether the probed slot was a dropped (zero) argument or an overt one. Signal-detection: zero trials yield hits/misses, overt(control) trials yield false-alarms/correct-rejections."
+          },
+          "responseClass": {
+            "type": "string",
+            "enum": [
+              "hit",
+              "miss",
+              "false_alarm",
+              "correct_reject"
+            ],
+            "description": "Signal-detection outcome. hit/miss come from zero (signal) trials; false_alarm/correct_reject from overt (noise) trials. Aggregated into H and F for d' = z(H) - z(F)."
+          },
+          "Y": {
+            "type": "integer",
+            "enum": [
+              0,
+              1
+            ],
+            "description": "BKT-grade outcome: hit, correct_reject -> 1; miss, false_alarm -> 0. Lets cloze double as a knowledge signal for the host lemma."
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Response latency."
+          },
+          "referentialDistance": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Clauses back to the true antecedent (RD) for the probed item, when known. Diagnostic only."
+          },
+          "competingAntecedents": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of competing antecedents in the window (PI). Diagnostic only."
+          },
+          "presentedAt": {
+            "type": "string",
+            "format": "datetime"
+          },
+          "sentenceContext": {
+            "type": "object",
+            "description": "Optional copyright-safe source context. Full cloze/probe sentence surface text must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5): store the antecedent slot metadata (antecedentType, referentialDistance, competingAntecedents), the itemRef, and a contentHash reference here — never the cloze sentence surface. The full sentence lives only in a server-only Tier B record referenced by privateRecordRef.",
+            "properties": {
+              "content": {
+                "type": "object",
+                "ref": "tools.spec.content.defs#contentRef",
+                "description": "Content-addressed reference (contentHash) to the source sentence the probe was drawn from. Replaces the removed surfaceSentence/encryptedSentence fields."
+              },
+              "sensitivityClass": {
+                "type": "string",
+                "ref": "tools.spec.event.encounter_defs#sensitivityClass"
+              },
+              "sourceDomain": {
+                "type": "string",
+                "maxLength": 64
+              }
+            }
+          },
+          "privateRecordRef": {
+            "type": "object",
+            "ref": "tools.spec.event.defs#privateRecordRef",
+            "description": "Optional opaque pointer to the server-only Tier B record (refType sentenceAnalysis/parseCache) that holds the full cloze sentence surface. Server-resolvable only."
+          }
+        }
+      }
+    }
+  }
+}

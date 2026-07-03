@@ -1,6 +1,8 @@
 # Learner Data Architecture
 
-This document describes how SPEC collects, stores, and uses learner data across the ecosystem. It covers the split between what lives on the ATProto firehose versus what lives in SPEC's own database, and how apps like Sunbi contribute data to build a meaningful learner profile over time.
+This document describes how SPEC collects, stores, and uses learner data across the ecosystem. It covers the split between what lives on the ATProto firehose versus what lives in SPEC's private backend, and how apps like Sunbi contribute data to build a meaningful learner profile over time.
+
+**Related:** [`lexicon-public-private-audit.md`](./lexicon-public-private-audit.md) (public SDK litmus audit), [`spec-research-suite/docs/lexicons/RELEASE_PROCESS.md`](../../spec-research-suite/docs/lexicons/RELEASE_PROCESS.md) (draft → release pipeline).
 
 ---
 
@@ -10,164 +12,131 @@ SPEC uses two distinct storage layers with different purposes:
 
 | Layer | What it holds | Who reads it | Why |
 |---|---|---|---|
-| **ATProto firehose** (public, portable) | Minimal signed events — what content a user encountered, when, on which app | Any SPEC-compatible app | Portability, user data ownership, cross-app identity |
-| **SPEC server DB** (private, computed) | Rich interaction detail, BKT posteriors, morpheme signals, assessments, computed SPEC level | spec-server, Sunbi extension (via API) | Heavy computation, eojeol-level granularity, signal quality |
+| **ATProto user repo** (portable) | Signed **raw events** + optional **curated profile summaries** | Any SPEC-compatible app | Portability, user data ownership, cross-app identity |
+| **spec-server DB** (private) | BKT posteriors, IRT state, full content ratings, rich interaction signals, OAuth secrets | spec-server, Sunbi extension (via API) | Proprietary interpretation + high-volume telemetry |
 
-The firehose records are the skeleton. They prove something happened, when, and on what platform. The server DB is where the real learner model lives.
+Raw firehose records prove something happened, when, and on which app. The server DB is where SPEC's scoring model runs.
 
----
-
-## What Goes on the Firehose
-
-Firehose records are minimal, signed by the originating app, and human-readable. They answer one question: **what content did this user engage with, and when?**
-
-### `tools.spec.event.content.encountered`
-
-The primary event record. Written once per content item per session, by any SPEC-integrated app.
-
-```
-user DID         — who
-app DID          — which app wrote this
-content URI      — URL or AT-URI of the content (YouTube video, book chapter, article)
-content domain   — news | webtoon | academic | conversation | fiction | video | other
-watched from     — timestamp (start)
-watched until    — timestamp (end of engagement, not necessarily the end of the content)
-spec level hint  — integer 1–10, the pre-computed SPEC level of this content (optional, supplied by app)
-signature        — Ed25519 signed by appDid
-```
-
-Nothing else. No morpheme lists. No word counts. No interaction details. Those belong in the server DB.
-
-### `tools.spec.event.word.saved` (existing)
-
-Unchanged from the current schema. Written when a user explicitly saves or looks up a word. This is a meaningful active signal and stays on the firehose because it is intentional, low-frequency, and portable.
-
-### `tools.spec.profile.learnerState` (singleton, server-written)
-
-A single self-keyed record per user, written by spec-server and updated when the learner's SPEC level or major profile metrics change. This is what partner apps read to display the user's level, zone, and progress.
-
-```
-spec level         — integer 1–10 (AND-gated: V, M, D, T all met)
-spec decimal       — e.g. 4.7 (level + posterior probability of next level)
-elo rating         — current overall ELO ability estimate
-settled lemmas     — count of lemma families with BKT posterior ≥ 0.60
-settled morphemes  — count of morpheme patterns with BKT posterior ≥ 0.60
-settled domains    — count of domains with 50+ settled encounters
-weeks at level     — time gate for level advancement
-growth zone        — [low, high] E_diff band for this learner
-computed at        — timestamp of last spec-server update
-```
-
-This record is the public face of the learner's SPEC profile. It does not expose raw posteriors or encounter history.
+**Source-of-truth rule:** if ATProto raw events and the private DB disagree about what happened, **the ATProto repo wins**; derived state must be recomputable from events plus private corpus caches.
 
 ---
 
-## What Goes in the Server DB
+## What Goes on the User's ATProto Repo (public lexicons)
 
-Everything computationally heavy, interaction-granular, or linguistically specific lives in spec-server's PostgreSQL database, not on the firehose.
+Firehose records are minimal, signed by the originating app, and pass the [public litmus test](./lexicon-public-private-audit.md): raw, verifiable facts — not model conclusions.
 
-### Content Ratings
+### Raw encounter events (`tools.spec.event.*`)
 
-When a piece of content is first encountered by any user, spec-server (or SPEC-RSSHub for RSS feeds) runs the full five-module SPEC grading pipeline on it:
+Examples already in the SDK: `sentence.read`, `word.saved`, `lemma.encountered`, `morpheme.encountered`, `book.completed`, `course.completed`, SRS reviews, mining captures.
 
-- **C_lex** — lexical coverage at each SPEC level
-- **C_morph** — salience-weighted morphological coverage
-- **C_decomp** — decomposition bonus (Sino-Korean transparency)
-- **SC** — structural complexity (ASL, connective density, nominalization)
-- **CD** — context debt (zero anaphora, referential distance, AIC)
+These answer: **what did the learner encounter or do, and when?** They do not carry BKT posteriors, fitted weights, or per-item model state.
 
-The result is a `content_rating` row: E_diff per level, zone classification, morpheme pattern inventory, and — critically — **eojeol environment inventory**: the specific surface forms and their functional classifications (contrast, background, trailing, etc.) for every polysemous pattern in the content.
+**No sentence surface text on the firehose (hard rule).** Firehose records — including a user's own `sentence.read`, `mining.sentence.captured`, encounter `sentenceContext`, `learner.cloze.responded`, and `srs.card.created` — identify source content only by **`contentHash`** (plus `sourceUrl`/`sourceDomain` and item refs), never by inlining the full Korean/English sentence. Full sentence text lives only in spec-server's private Tier B parse/sentence-analysis cache, reachable from a public record via an opaque `privateRecordRef`. See [`spec-research-suite/docs/lexicons/RECORD_REFERENCE_HIERARCHY.md`](../../spec-research-suite/docs/lexicons/RECORD_REFERENCE_HIERARCHY.md) §5 and [`lexicon-public-private-audit.md`](./lexicon-public-private-audit.md).
 
-This is computed once and cached. Every user who later encounters the same content gets the benefit of that pre-computation.
+Rich morpheme interaction detail (hover pauses, lookups, self-reports) is sent to **spec-server's API only** — not duplicated on the firehose at full granularity.
 
-### Learner Morpheme States
+### Lifecycle milestone notifications (`tools.spec.lifecycle.*`)
 
-For each user, the server maintains a BKT (Bayesian Knowledge Tracing) posterior per morpheme pattern, updated from signals contributed by Sunbi and other apps:
+Trimmed public milestones: `stage.promoted`, `item.mastered`, `item.forgotten`, `session.started`, `streak.broken`, `bibim.pattern.discovered`.
+
+These are badge/analytics notifications. They **do not** include BKT `priorW`/`posteriorW`, IRT difficulty deltas, or threshold proximity fields — those live in spec-server Postgres.
+
+**Removed from public SDK (private only):** `tools.spec.profile.extrapolation_state`, `tools.spec.lifecycle.difficulty.learner.updated` — see `spec-server/docs/private-schemas/`.
+
+### Curated profile summaries (`tools.spec.profile.*`)
+
+#### `tools.spec.profile.learnerState` (singleton, spec-server-written)
+
+Human-readable SPEC profile for partner apps. Written to the user's repo when level or major metrics change.
 
 ```
-user_id
-morpheme_id        — pattern identifier e.g. "-는데"
-bkt_posterior      — P(learned) per Baker et al. 2008 update rule
-elo_rating         — per-item ELO (cold-start before BKT stabilises)
-encounter_count    — total signals received
-is_settled         — posterior ≥ 0.60
-last_signaled_at
-fading_flag        — posterior decayed below threshold after extended absence
+specLevel          — integer 1–10 (AND-gated level)
+specDecimal        — optional display decimal (level + progress hint)
+eloRating          — optional mirror of ELO trajectory
+settledLemmas      — count only (not per-lemma posteriors)
+settledMorphemes    — count only
+settledDomains     — count only
+weeksAtLevel       — temporal gate progress
+growthZoneLow/High — recommended E_diff band for this learner
+computedAt         — last update timestamp
 ```
 
-Over time, with enough signals from Sunbi, these posteriors extend to **eojeol environment granularity** — not just one posterior for `-는데` but a distribution across functional environments (contrast vs. background vs. trailing softener), derived from clustering the specific eojeol contexts in which the user received signals.
+This record does **not** expose raw BKT posteriors, V/M/D/T threshold tables, or encounter history.
 
-### Interaction Signals (from Sunbi)
+#### `tools.spec.profile.elo` (singleton)
 
-Sunbi's extension tracks fine-grained morpheme interactions and sends them to spec-server via its own API — not via the firehose. These are the high-quality BKT signals:
+Public **ELO trajectory score** aggregates (reading/vocabulary/listening/overall). This is not the paper's AND-gated SPEC level — see ecosystem naming guidance in `spec-score` / `ECOSYSTEM_ARCHITECTURE.md` §8.
 
-| Signal type | Description | BKT weight |
-|---|---|---|
-| `hover_pause` | User paused on a morpheme in a parsed eojeol | Low (passive attention) |
-| `lookup` | User clicked through to morpheme definition | Medium |
-| `self_report` | User rated familiarity inline (see below) | High |
-| `test_correct` | Correct response on a prompted assessment | High |
-| `test_wrong` | Incorrect response on a prompted assessment | High (negative) |
-| `saved` | User saved/starred the pattern | Medium |
+### Public content catalog labels (`tools.spec.content.difficultyBand`)
 
-Each signal carries the full eojeol surface form and Kiwi parse, so spec-server can map it to the appropriate eojeol environment in the content rating.
+Shareable **text level + zone** for a content unit — no E_diff module vector, weight profile, or per-level curve. Full grading output stays in spec-server's private `content_rating` cache.
 
-### Self-Reports
+---
 
-Sunbi surfaces non-intrusive inline self-report prompts while users read. These are shown contextually — for a specific morpheme in a specific eojeol the user just encountered — not as interruptions.
+## What Stays in spec-server Postgres (never public lexicons)
 
-Example prompt (inline, dismissible):
-> *`비가 오는데` — did this feel natural?*
-> ✓ Yes / ~ Mostly / ? Unsure / ✗ No
+Everything computationally heavy, model-internal, or gaming-sensitive:
 
-The four-point response maps to a BKT signal weight. The full eojeol and its parsed functional class are recorded server-side. Self-reports are the highest-quality signal in the system because they are reflective and morpheme-specific.
+### Full content ratings
 
-Frequency is managed to stay low-friction: Sunbi throttles self-report prompts by session and by morpheme (no pattern is prompted more than once per session, and patterns above 0.85 posterior are not prompted unless fading is detected).
+When content is first ingested, spec-server runs the five-module grading pipeline (after parse):
 
-### Assessments
+- **C_lex**, **C_morph**, **C_decomp**, **SC**, **CD** module scores
+- E_diff per reference level, morpheme pattern inventory, eojeol environment inventory
 
-Occasional, low-pressure prompted assessments are generated from content the user just finished. They fire at natural break points (end of article, between chapters) and are always optional and dismissible.
+Stored as private `content_rating` rows — **not** as `tools.spec.content.contentRating` on the firehose.
 
-Three types:
+### Learner model state
 
-1. **Cloze** — a sentence from the just-read content with a morpheme blanked. User types or selects the missing form.
-2. **Recognition** — two versions of a sentence (differing in morpheme choice). User picks which matches the original or which sounds natural.
-3. **Context classification** — given an eojeol containing a polysemous pattern (e.g. `-는데`), user selects its discourse function from a short list (contrast / background / trailing).
+- BKT posteriors per morpheme/lemma (`bkt_posterior`, `is_settled`, fading flags)
+- IRT item params and ability estimates
+- Extrapolation snapshots (`extrapolation_state` schema in `spec-server/docs/private-schemas/`)
+- Per-item difficulty update history (`difficulty.learner.updated` schema — private)
 
-Cloze and recognition responses feed BKT directly. Context classification responses feed the eojeol environment model — over time, user accuracy on classifying specific environments tells spec-server which environments are consolidated versus uncertain for that user.
+### Rich interaction signals (from Sunbi)
 
-Assessment results also generate `d'` (d-prime) estimates from signal detection theory, per the SPEC A7 methodology. Hit rate and false-alarm rate across a session give a bias-free accuracy estimate that feeds the AIC component of context debt scoring for that user's profile.
+Sent via spec-server API, not firehose:
+
+| Signal type | Description |
+|---|---|
+| `hover_pause` | Passive attention on a morpheme |
+| `lookup` | Click-through to definition |
+| `self_report` | Inline familiarity rating |
+| `test_correct` / `test_wrong` | Assessment outcomes |
+| `saved` | Pattern starred |
+
+Each signal may carry full eojeol parse detail for environment-level BKT updates.
+
+### Assessments and d-prime
+
+Cloze, recognition, and context-classification responses feed BKT and signal-detection (`d'`) estimates server-side. Response history is private; only derived summaries may appear in `learnerState`.
+
+### Auth and secrets
+
+OAuth tokens, JWT signing keys, service-role credentials — always private.
 
 ---
 
 ## How the Two Layers Connect
 
-At computation time, spec-server joins the firehose events against the server DB:
-
 ```
 Firehose: user X encountered content Y at time T
     ↓
-Server DB: fetch content_rating for Y
-    → morpheme pattern inventory
-    → eojeol environment inventory
-    → E_diff at user X's current SPEC level
-    → domain classification
+Server DB: fetch private content_rating for Y
+    → morpheme inventory, E_diff at X's level, eojeol environments
     ↓
-Update:
-    → BKT posteriors for all patterns in Y (passive exposure weight)
-    → ELO rating update using E_diff
-    → domain encounter counter
+Update private state:
+    → BKT posteriors, domain counters, IRT where applicable
     ↓
-Sunbi API signals (if present for this session):
-    → override passive-weight BKT updates with active-signal weights
-    → add eojeol environment-specific posteriors
-    → incorporate self-report and assessment results
+Sunbi API signals (if present):
+    → active-signal weights, self-reports, assessments
     ↓
-Recompute tools.spec.profile.learnerState
-    → write back to firehose (singleton, overwrites previous)
+Recompute curated public records:
+    → tools.spec.profile.learnerState (summary only)
+    → tools.spec.profile.elo (via spec-score trajectory, optional mirror)
 ```
 
-The firehose event is the trigger. The content rating is the linguistic payload. Sunbi signals are the enrichment layer.
+The firehose event is the trigger. The content rating is the private linguistic payload. Sunbi signals are the enrichment layer.
 
 ---
 
@@ -175,28 +144,29 @@ The firehose event is the trigger. The content rating is the linguistic payload.
 
 When a user exports or moves their SPEC account, they take:
 
-- Their complete `tools.spec.event.*` history — every piece of content they engaged with, on every app, with timestamps
-- Their current `tools.spec.profile.learnerState` — human-readable level, ELO, settled counts, growth zone
-- Their `tools.spec.event.word.saved` records — words they explicitly saved
+- Complete `tools.spec.event.*` history
+- Current `tools.spec.profile.learnerState` and `tools.spec.profile.elo`
+- `tools.spec.event.word.saved` and other saved records
 
-What they do not take with them (because it lives in the server DB):
+They do **not** take (private, recomputable given corpus access):
 
-- Raw BKT posteriors per morpheme (these can be recomputed from the event history given a content rating DB)
-- Eojeol environment interaction logs (Sunbi-specific, high-volume)
-- Assessment response history
+- Raw BKT posteriors and IRT params
+- Full `content_rating` module breakdowns
+- Eojeol interaction logs and assessment item history
 
-A user who moves to a different SPEC-compatible server can bootstrap a new profile from their exported event history. The new server recomputes BKT from content ratings, producing a profile that converges to their true state over time. The more content ratings the new server has cached, the faster the convergence.
+A new SPEC-compatible server can bootstrap from exported events and its own content-rating cache.
 
 ---
 
 ## App Integration Summary
 
-| App | Writes to firehose | Sends to spec-server API | Reads from firehose |
+| App | Writes to user ATProto repo | Sends to spec-server API | Reads from user repo |
 |---|---|---|---|
-| **Sunbi** | `content.encountered`, `word.saved` | Morpheme hover/lookup signals, self-reports, assessment responses | `learnerState` (zone badge, level display) |
-| **Shelf** | `content.encountered` | — | `learnerState` (difficulty display per book) |
-| **Yoten** | `content.encountered` | — | `learnerState` (content filter by zone) |
-| **SPEC-RSSHub** | — | Content rating jobs (article ingest) | — |
-| **spec-server** | `learnerState` (computed result) | — | All `tools.spec.event.*` records |
+| **Sunbi** | Raw encounter events, `word.saved` | Morpheme signals, self-reports, assessments | `learnerState`, `elo` |
+| **Shelf** | Content encounter events | — | `learnerState` |
+| **Yoten** | Content encounter events | — | `learnerState` |
+| **SPEC-RSSHub** | — | Content ingest / rating jobs | — |
+| **spec-server** | `learnerState` (computed summary) | — | All `tools.spec.event.*` |
+| **spec-score** | Optional `profile.elo` mirror | — | Verified `tools.spec.event.*` (firehose) |
 
-Sunbi is the richest data source because it is the only app with morpheme-level interaction detection. Shelf and Yoten contribute content encounter breadth — the system gets better coverage of which content a learner is consuming across domains, which feeds domain strength and SPEC level computation even without morpheme-level signals.
+Sunbi remains the richest signal source because it alone captures morpheme-level interaction detail — via the **private API**, not the public firehose.

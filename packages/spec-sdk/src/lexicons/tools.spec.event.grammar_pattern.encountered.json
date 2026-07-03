@@ -114,6 +114,25 @@
             "type": "number",
             "ref": "tools.spec.event.encounter_defs#resolverConfidence"
           },
+          "encounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of this specific grammar-pattern encounter. Required (see required[]); this was previously listed as required but omitted from properties. Distinct from firstEncounteredAt (first-ever).\n"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds between the construction span becoming visible/available and this outcome being recorded. Optional direct latency signal for the CAS Automaticity (F) axis observation model on the construction's own Level-3 node (B9 Continuous Acquisition Spectrum Model S3.4/S4.2/S5.1). See reference/017_continuous_acquisition_spectrum_hydration.md.\n"
+          },
+          "candidateAnalyses": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#candidateAnalysisRef"
+            },
+            "description": "Top-K bibim candidate analyses for the construction span when genuinely ambiguous, each carrying a raw candidatePatternId + freq. Optional; absent, or a single entry, means the construction identity was effectively unambiguous and patternId is the whole story. Enables the private enumerative/soft-evidence update (B9 S4.7) without requiring disambiguation before this event is emitted.\n"
+          },
           "encounterCount": {
             "type": "integer",
             "minimum": 1
@@ -131,10 +150,12 @@
           },
           "sentenceContext": {
             "type": "object",
+            "description": "Copyright-safe source context. Full sentence surface text must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5); the source sentence is identified by contentHash and joined server-side, and its full text lives only in a Tier B record.",
             "properties": {
-              "surfaceSentence": {
-                "type": "string",
-                "maxLength": 512
+              "content": {
+                "type": "object",
+                "ref": "tools.spec.content.defs#contentRef",
+                "description": "Content-addressed reference (contentHash) to the source sentence. Replaces the removed surfaceSentence field."
               },
               "sourceUrl": {
                 "type": "string",

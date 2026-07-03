@@ -71,6 +71,11 @@
             ],
             "description": "Coarse legacy register from signedEventBase. Sunset 2026-09-01."
           },
+          "observedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of this specific register observation. Required (see required[]); this was previously listed as required but omitted from properties. Distinct from firstEncounteredAt (first-ever).\n"
+          },
           "encounterCount": {
             "type": "integer",
             "minimum": 1
@@ -88,10 +93,12 @@
           },
           "sentenceContext": {
             "type": "object",
+            "description": "Copyright-safe source context. Full sentence surface text must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5); the source sentence is identified by contentHash and joined server-side, and its full text lives only in a Tier B record.",
             "properties": {
-              "surfaceSentence": {
-                "type": "string",
-                "maxLength": 512
+              "content": {
+                "type": "object",
+                "ref": "tools.spec.content.defs#contentRef",
+                "description": "Content-addressed reference (contentHash) to the source sentence. Replaces the removed surfaceSentence field."
               },
               "sourceUrl": {
                 "type": "string",

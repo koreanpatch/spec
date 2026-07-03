@@ -25,6 +25,8 @@ A public lexicon should **never** encode SPEC's private interpretation of an eve
 
 **Quick litmus test:** if a proposed lexicon field looks like a score, a posterior, a fitted weight, or a threshold rather than a fact about something a user did, don't add it here — flag it for internal review before merging. When in doubt, keep the record shape minimal and raw; a lexicon that only ever describes "what happened" can stay stable for years even while the private scoring algorithm iterates weekly. A lexicon that encodes "what SPEC concluded about it" couples protocol stability to algorithm churn, which is the exact problem this rule exists to prevent.
 
+**Operational audit (2026-07-03):** see [`docs/lexicon-public-private-audit.md`](docs/lexicon-public-private-audit.md) for the current public SDK inventory and remediation log. Draft lexicons live in private `spec-research-suite/docs/lexicons/proposals/`; blocked NSIDs are listed in `RELEASE_BLOCKERS.md`.
+
 ## Sibling repos (this ecosystem, at a glance)
 
 - **`spec`** (this repo) — public protocol: ATProto lexicons + SDK/client libraries. MIT.

@@ -1,0 +1,86 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.content.defs",
+  "description": "Minimal shared types for public content difficulty labels. Full E_diff module scores and contentRating records are private (spec-server cache only). See docs/lexicon-public-private-audit.md.\n",
+  "defs": {
+    "contentRef": {
+      "type": "object",
+      "required": [
+        "contentHash"
+      ],
+      "properties": {
+        "contentHash": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "sha256 of normalized source text."
+        },
+        "sourceUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "sourceDomain": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "domainId": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Optional canonical domain-taxonomy id (e.g. domain:news, domain:news:sports, domain:webtoon:romance). Additive alongside sourceDomain -- lets a domain node recursively belong to a broader parent domain per B9 Continuous Acquisition Spectrum Model S4.3's domain-hierarchy note. Absent means the flat sourceDomain bucket is the only signal available. Taxonomy structure only -- never a computed aggregate score or axis value. See spec-research-suite/docs/lexicons/proposals/reference/017_continuous_acquisition_spectrum_hydration.md.\n"
+        },
+        "parentDomainId": {
+          "type": "string",
+          "maxLength": 64,
+          "description": "Immediate parent domainId in the taxonomy, or absent for a top-level domain. Enables recursive domain rollups without requiring a flat domain list. Describes taxonomy structure only -- it is never a computed aggregate score or axis value.\n"
+        },
+        "languageCode": {
+          "type": "string",
+          "maxLength": 10,
+          "default": "ko"
+        },
+        "unit": {
+          "type": "string",
+          "enum": [
+            "sentence",
+            "paragraph",
+            "document"
+          ]
+        }
+      }
+    },
+    "zone": {
+      "type": "string",
+      "enum": [
+        "cruise",
+        "flow",
+        "growth",
+        "stretch",
+        "deep_end",
+        "beyond"
+      ],
+      "description": "Difficulty zone band for catalog display."
+    },
+    "specLevel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "SPEC text level 1–10 (catalog band)."
+    },
+    "catalogProvenance": {
+      "type": "object",
+      "required": [
+        "gradedAt"
+      ],
+      "properties": {
+        "gradedAt": {
+          "type": "string",
+          "format": "datetime"
+        },
+        "specVersion": {
+          "type": "string",
+          "maxLength": 16,
+          "description": "Algorithm version label only — not fitted weights."
+        }
+      }
+    }
+  }
+}

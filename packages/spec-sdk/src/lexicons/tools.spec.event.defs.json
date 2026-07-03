@@ -3,6 +3,39 @@
   "id": "tools.spec.event.defs",
   "description": "Shared type definitions for SPEC learning events.",
   "defs": {
+    "privateRecordRef": {
+      "type": "object",
+      "description": "Opaque reference from a public firehose record to a private (spec-server) interpretation record. Public consumers treat it as a correlation token only: it is NOT a dereferenceable AT-URI and reveals no BKT posterior, fitted weight, threshold, module vector, or embedding. Only spec-server can resolve it. Use this in place of inlining any private interpretation. See spec-research-suite/docs/lexicons/RECORD_REFERENCE_HIERARCHY.md S2.\n",
+      "required": [
+        "ref",
+        "refType"
+      ],
+      "properties": {
+        "ref": {
+          "type": "string",
+          "maxLength": 512,
+          "description": "Opaque id or at://internal/spec-server/<collection>/<rkey> URI. Server-resolvable only; not fetchable by an outside relay or client."
+        },
+        "refType": {
+          "type": "string",
+          "enum": [
+            "spectrumState",
+            "contentRating",
+            "difficultyUpdate",
+            "extrapolationState",
+            "sentenceAnalysis",
+            "parseCache"
+          ],
+          "description": "The kind of private record pointed at, named without revealing its contents. sentenceAnalysis / parseCache point at server-only Tier B records that hold the full sentence surface text and parse tiers removed from public firehose records (see RECORD_REFERENCE_HIERARCHY.md S5)."
+        },
+        "resolvedBy": {
+          "type": "string",
+          "const": "spec-server",
+          "default": "spec-server",
+          "description": "Fixed marker that only spec-server can dereference this reference."
+        }
+      }
+    },
     "encryptedField": {
       "type": "object",
       "required": [

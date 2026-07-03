@@ -86,14 +86,16 @@
           },
           "miningSource": {
             "type": "object",
+            "description": "Provenance for a card mined from source text. Full source sentence surface text must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5); reference the source by sentenceId + contentHash only.",
             "properties": {
               "sentenceId": {
                 "type": "string",
                 "maxLength": 128
               },
-              "sentenceSurface": {
-                "type": "string",
-                "maxLength": 512
+              "content": {
+                "type": "object",
+                "ref": "tools.spec.content.defs#contentRef",
+                "description": "Content-addressed reference (contentHash) to the mined source sentence. Replaces the removed sentenceSurface field."
               },
               "audioRef": {
                 "type": "string",
@@ -103,21 +105,20 @@
           },
           "presentation": {
             "type": "object",
+            "description": "Card display metadata. Copyright boundary (see RECORD_REFERENCE_HIERARCHY.md S5): cardFront/cardBack must carry only the item, its gloss/definition, or the learner's own study text — NEVER a copyrighted source passage or a cloze of one. The source/context sentence is not stored inline (the former contextSentence field was removed); reference it via miningSource.content (contentHash) and reconstruct the display client-side.",
             "properties": {
               "cardFront": {
                 "type": "string",
-                "maxLength": 256
+                "maxLength": 256,
+                "description": "Card front (prompt). Item/gloss/user-authored text only — must not inline a copyrighted source sentence, including as a cloze. Reference source context by contentHash (miningSource.content)."
               },
               "cardBack": {
                 "type": "string",
-                "maxLength": 1024
+                "maxLength": 1024,
+                "description": "Card back (answer/definition). Item/gloss/user-authored text only — must not inline a copyrighted source passage. Reference source context by contentHash (miningSource.content)."
               },
               "frontCloze": {
                 "type": "boolean"
-              },
-              "contextSentence": {
-                "type": "string",
-                "maxLength": 512
               },
               "tags": {
                 "type": "array",

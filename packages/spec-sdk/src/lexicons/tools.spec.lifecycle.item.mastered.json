@@ -1,7 +1,7 @@
 {
   "lexicon": 1,
   "id": "tools.spec.lifecycle.item.mastered",
-  "description": "An individual item (lemma or morpheme pattern) has been mastered by a learner, per SPEC's private knowledge-tracing model. This is a lightweight notification event for downstream consumers (streak tracking, milestone badges, personal analytics). The authoritative per-encounter interpretation record lives in SPEC's private backend, not on the public firehose.\n",
+  "description": "A learner mastered an individual item (lemma or morpheme pattern). Milestone notification for badges and analytics — not a BKT posterior dump. Authoritative per-item model state lives in spec-server's private database.\n",
   "defs": {
     "main": {
       "type": "record",
@@ -12,8 +12,6 @@
           "learnerDid",
           "itemId",
           "itemType",
-          "priorW",
-          "posteriorW",
           "masteredAt",
           "sessionId",
           "encounterCountAtMastery",
@@ -23,7 +21,7 @@
           "learnerDid": {
             "type": "string",
             "format": "did",
-            "description": "The learner who mastered this item. did:plc:... format."
+            "description": "The learner who mastered this item."
           },
           "itemId": {
             "type": "string",
@@ -37,18 +35,6 @@
             ],
             "description": "Whether this is a vocabulary lemma or a morpheme pattern."
           },
-          "priorW": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "W_i immediately before crossing tau. Must be < tau."
-          },
-          "posteriorW": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "W_i immediately after crossing tau. Must be >= tau."
-          },
           "masteredAt": {
             "type": "string",
             "format": "datetime",
@@ -57,22 +43,16 @@
           "sessionId": {
             "type": "string",
             "maxLength": 128,
-            "description": "The learning session that produced this mastery update, per SPEC's private fitting session bookkeeping.\n"
+            "description": "The learning session that produced this mastery notification."
           },
           "encounterCountAtMastery": {
             "type": "integer",
             "minimum": 1,
-            "description": "Number of encounters required to achieve mastery. For lemmas: typically 5–15 for tau=0.60. For patterns: typically 3–10.\n"
+            "description": "Number of encounters recorded before this mastery milestone."
           },
           "sourceEventRef": {
             "type": "string",
-            "description": "Opaque reference to the private interpretation record that triggered this mastery event. Resolved internally by SPEC's backend; not a public AT-URI collection.\n"
-          },
-          "difficultyAtMastery": {
-            "type": "integer",
-            "minimum": 0,
-            "maximum": 10000,
-            "description": "Item difficulty score at time of mastery (from IRT b_i if available, else static score). Used for analytics: \"mastered a hard item\" vs \"mastered an easy item\".\n"
+            "description": "Opaque, server-resolvable reference to the private tools.spec.private.learner.spectrumState update (spec-server) whose W crossing triggered this milestone. Correlation token only — it does NOT carry priorW/posteriorW or any (W, kappa, F) value inline; the authoritative per-node state stays private. New records MAY instead use the structured tools.spec.event.defs#privateRecordRef shape (refType 'spectrumState'). See RECORD_REFERENCE_HIERARCHY.md S2."
           },
           "languageCode": {
             "type": "string",

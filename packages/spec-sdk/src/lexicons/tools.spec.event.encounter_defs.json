@@ -3,6 +3,38 @@
   "id": "tools.spec.event.encounter_defs",
   "description": "Shared type definitions for SPEC user-record encounter events (lemma, compound, register, dialect, entity, grammar pattern). Provides the cross-record vocabulary used by RFCs 008–012. Distinct from tools.spec.event.defs (which holds signedEventBase and morphemeEncounterBase) and exists to avoid repeating the same field set across the user-records suite.\n",
   "defs": {
+    "candidateAnalysisRef": {
+      "type": "object",
+      "description": "One of bibim_parser's enumerated candidate analyses for the host eojeol, carried alongside the event's single resolved hostLemma/patternId (which always remains the top-freq pick for consumers that don't need soft evidence). This is raw parse output only -- exactly what the parser considered and how it ranked each candidate -- never a computed evidence weight or knowledge posterior. Enables the private CAS/BKT enumerative fractional-evidence update (B9 Continuous Acquisition Spectrum Model, S4.7) to split credit across candidate morphemes/lemmas weighted by bibim's own freq, instead of requiring disambiguation before the event is emitted. See spec-research-suite/docs/lexicons/proposals/reference/017_continuous_acquisition_spectrum_hydration.md.\n",
+      "required": [
+        "freq"
+      ],
+      "properties": {
+        "candidateLemma": {
+          "type": "object",
+          "description": "Candidate host lemma for this analysis. Present on lemma-shaped encounters (e.g. tools.spec.event.lemma.encountered); absent when the candidate set is over patterns, not lemmas.\n",
+          "ref": "tools.spec.event.encounter_defs#hostLemmaRef"
+        },
+        "candidatePatternId": {
+          "type": "string",
+          "maxLength": 128,
+          "description": "Candidate morpheme pattern id for this analysis. Present on pattern-shaped encounters (e.g. tools.spec.event.morpheme.encountered); absent when the candidate set is over lemmas, not patterns.\n"
+        },
+        "morphemeTags": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "type": "string"
+          },
+          "description": "Ordered POS/tag sequence for this candidate analysis (bibim identity.tag per morpheme). Distinguishes candidates that would otherwise look identical by lemma/pattern id alone.\n"
+        },
+        "freq": {
+          "type": "number",
+          "minimum": 0,
+          "description": "bibim Analysis.freq for this candidate -- a corpus ranking score, ranking-only per bibim's own OUTPUT_SCHEMA invariant, NOT the SPEC frequency rank used by C_lex. Renormalize across the retained top-K candidates (w_j = freq_j / sum(freq)) before use; do not assume the emitted set sums to 1.\n"
+        }
+      }
+    },
     "dialectProfileId": {
       "type": "string",
       "maxLength": 32,

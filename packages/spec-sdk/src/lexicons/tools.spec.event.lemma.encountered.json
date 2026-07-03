@@ -85,6 +85,25 @@
             "type": "number",
             "ref": "tools.spec.event.encounter_defs#resolverConfidence"
           },
+          "encounteredAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp of this specific lemma encounter. Required (see required[]); this was previously listed as required but omitted from properties. Distinct from firstEncounteredAt (first-ever); this is the event time used for BKT sequencing and cross-app dedupe (eventId).\n"
+          },
+          "latencyMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds between the eojeol becoming visible/available and this outcome being recorded (e.g. time-to-lookup, time-to-mark-known, time-to-advance). Optional direct latency signal for the CAS Automaticity (F) axis observation model (B9 Continuous Acquisition Spectrum Model S3.4/S5.1); when absent, F falls back to the coarser outcome-based proxy. Not required for BKT/E_diff, which use W only. See reference/017_continuous_acquisition_spectrum_hydration.md.\n"
+          },
+          "candidateAnalyses": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "ref": "tools.spec.event.encounter_defs#candidateAnalysisRef"
+            },
+            "description": "Top-K bibim candidate analyses for the host eojeol when genuinely ambiguous (bibim's own enumerate-every-parse output), each carrying a raw freq. Optional; absent, or a single entry, means the eojeol was effectively unambiguous and hostLemma is the whole story. hostLemma always remains the single top-freq pick for consumers that don't need soft evidence. Enables the private enumerative/soft-evidence update (B9 S4.7) without requiring disambiguation before this event is emitted.\n"
+          },
           "encounterCount": {
             "type": "integer",
             "minimum": 1
@@ -102,10 +121,12 @@
           },
           "sentenceContext": {
             "type": "object",
+            "description": "Copyright-safe source context. Full sentence surface text must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5); the source sentence is identified by contentHash and joined server-side, and its full text lives only in a Tier B record.",
             "properties": {
-              "surfaceSentence": {
-                "type": "string",
-                "maxLength": 512
+              "content": {
+                "type": "object",
+                "ref": "tools.spec.content.defs#contentRef",
+                "description": "Content-addressed reference (contentHash) to the source sentence. Replaces the removed surfaceSentence field."
               },
               "sourceUrl": {
                 "type": "string",

@@ -1,0 +1,146 @@
+{
+  "lexicon": 1,
+  "id": "tools.spec.event.hvpt.trial",
+  "description": "A learner completed one High-Variability Phonetic Training (HVPT) trial: a single forced-choice discrimination or identification judgment on a Korean phonetic contrast (e.g. tense/aspirated/plain laryngeal stops), presented by one talker in one phonetic environment. This is the raw stimulus/response/outcome/latency record for a single trial -- it carries no knowledge-state axis values, no BKT/CAS posterior, and no propagation weights. The private CAS Strength/Stability/Automaticity update for the contrast node is computed elsewhere from a stream of these records; this record only says what was presented and how the learner responded. Companion to the reading-side tools.spec.event.*.encountered family: HVPT trials are the domain-general analogue described in B9 Continuous Acquisition Spectrum Model S5 (same three-axis state and update equations, different observation model).\nKorean examples:\n  contrastId=hvpt:contrast:stop_laryngeal_dtt (다/따/타), trialFormat=AXB, talkerId=talker:f-seoul-02\n  contrastId=hvpt:contrast:vowel_eu_eo (으/어), trialFormat=identification_2afc, talkerId=talker:m-busan-01\n",
+  "defs": {
+    "main": {
+      "type": "record",
+      "key": "tid",
+      "extends": "tools.spec.event.defs#signedEventBase",
+      "record": {
+        "type": "object",
+        "required": [
+          "learnerDid",
+          "trialId",
+          "sessionId",
+          "contrastId",
+          "trialFormat",
+          "stimulus",
+          "correct",
+          "presentedAt"
+        ],
+        "properties": {
+          "learnerDid": {
+            "type": "string",
+            "format": "did"
+          },
+          "trialId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Unique identifier for this trial. Format recommendation: hvpt-{sessionId}-{seq}."
+          },
+          "sessionId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Groups all trials from one HVPT training session. Distinct from a reading tools.spec.lifecycle.session.started sessionId, but may co-occur with one if HVPT is embedded in a mixed-activity app session.\n"
+          },
+          "trialIndexInSession": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "0-based position of this trial within its session. Used for within-session fatigue/warm-up analysis, and as a context-novelty input alongside talkerId (B9 S3.3)."
+          },
+          "contrastId": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Canonical id of the phonetic contrast/category under training. Format recommendation: hvpt:contrast:<name> (e.g. hvpt:contrast:stop_laryngeal_dtt). This is the raw analogue of a reading-side patternId -- the node id private CAS state is tracked against. The catalog of valid contrastIds is maintained as private/dictionary-adjacent reference metadata, not defined in this record.\n"
+          },
+          "trialFormat": {
+            "type": "string",
+            "enum": [
+              "AXB",
+              "ABX",
+              "identification_2afc",
+              "identification_3afc",
+              "oddity",
+              "discrimination_same_different"
+            ],
+            "description": "Forced-choice paradigm used for this trial, per the standard HVPT/phonetic-training literature (Logan, Lively, & Pisoni 1991)."
+          },
+          "stimulus": {
+            "type": "object",
+            "description": "What was actually presented to the learner -- raw, verifiable facts about the trial, not an interpretation of the learner's knowledge.",
+            "required": [
+              "talkerId"
+            ],
+            "properties": {
+              "talkerId": {
+                "type": "string",
+                "maxLength": 64,
+                "description": "Canonical id of the talker/voice used for this trial's audio. This is the raw signal behind HVPT's own high-variability-training design principle and feeds the private context-novelty multiplier (B9 S3.3) exactly the way content domain does for reading.\n"
+              },
+              "phoneticEnvironment": {
+                "type": "string",
+                "maxLength": 64,
+                "description": "Phonetic/positional environment of the target sound (e.g. word_initial, intervocalic, word_final, pre_nasal)."
+              },
+              "tokens": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 4,
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "surface": {
+                      "type": "string",
+                      "maxLength": 32,
+                      "description": "Orthographic/romanized form of one stimulus token in this trial (e.g. one of 다/따/타 for an AXB trial)."
+                    },
+                    "audioRef": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Optional reference to the audio asset played for this token."
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "target",
+                        "foil",
+                        "reference_a",
+                        "reference_x",
+                        "reference_b"
+                      ],
+                      "description": "The token's role within the trial's forced-choice structure."
+                    }
+                  },
+                  "required": [
+                    "surface"
+                  ]
+                }
+              }
+            }
+          },
+          "responseGiven": {
+            "type": "string",
+            "maxLength": 32,
+            "description": "Which stimulus/category the learner selected (e.g. the surface form or role of the chosen token). Raw response, not a correctness judgment."
+          },
+          "correct": {
+            "type": "boolean",
+            "description": "Whether responseGiven matched the trial's target. This is the raw c_n signal feeding the private CAS Strength (W) and Stability (kappa) axes, exactly as outcome/Y does for reading encounters."
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Optional graded self-reported confidence in the response, for HVPT designs that use graded rather than strictly binary trials. This is the learner's own raw self-report, not a computed evidence weight.\n"
+          },
+          "rtMs": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Raw reaction time in milliseconds from stimulus onset (or offset, per trialFormat convention) to response. Direct signal for the CAS Automaticity (F) axis observation model (B9 S3.4/S5.1) -- HVPT trial software can log this natively, unlike casual reading which only has the coarser outcome-based proxy.\n"
+          },
+          "presentedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "UTC timestamp when the stimulus was presented."
+          },
+          "languageCode": {
+            "type": "string",
+            "maxLength": 10,
+            "default": "ko"
+          }
+        }
+      }
+    }
+  }
+}

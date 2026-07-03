@@ -13,8 +13,7 @@
           "learnerDid",
           "sourceId",
           "miningId",
-          "sentenceSurface",
-          "sentenceNormalised",
+          "content",
           "items",
           "capturedAt"
         ],
@@ -30,20 +29,17 @@
           "miningId": {
             "type": "string",
             "maxLength": 128,
-            "description": "sha256(learnerDid + sourceId + sentenceSurface + items snapshot)."
+            "description": "sha256(learnerDid + sourceId + content.contentHash + items snapshot). Computed client-side from the normalized sentence; the surface text itself is never stored on this public record."
           },
-          "sentenceSurface": {
-            "type": "string",
-            "maxLength": 1024
+          "content": {
+            "type": "object",
+            "ref": "tools.spec.content.defs#contentRef",
+            "description": "Content-addressed reference (contentHash of the NFC-normalized captured sentence) that replaces the removed sentenceSurface/sentenceNormalised/sentenceTranslation fields. Full sentence surface text (Korean source or translation) must NEVER appear on the public firehose (see RECORD_REFERENCE_HIERARCHY.md S5); mining records carry item refs + contentHash + sourceId only."
           },
-          "sentenceNormalised": {
-            "type": "string",
-            "maxLength": 1024,
-            "description": "NFC-normalized form. Used for hashing."
-          },
-          "sentenceTranslation": {
-            "type": "string",
-            "maxLength": 1024
+          "privateRecordRef": {
+            "type": "object",
+            "ref": "tools.spec.event.defs#privateRecordRef",
+            "description": "Optional opaque pointer to the server-only Tier B record (refType sentenceAnalysis/parseCache) holding the full captured surface, normalized form, and any translation. Server-resolvable only."
           },
           "sourceMetadata": {
             "type": "object",
